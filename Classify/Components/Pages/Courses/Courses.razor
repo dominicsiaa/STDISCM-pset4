@@ -1,0 +1,64 @@
+﻿@page "/courses"
+@rendermode InteractiveServer
+@inject Classify.Services.CourseService CourseService
+@using Classify.Services
+
+<h3>Courses</h3>
+
+@if (courses == null)
+{
+
+}
+else
+{
+	<ul>
+		@errorMessage
+		@foreach (var course in courses)
+		{
+			<li>
+				@course.Code - @course.StudentIds.Count/@course.Capacity
+				<button class="btn btn-primary ms-2" @onclick="() => EnrollStudent(course.Id)">Enroll</button>
+			</li>
+		}
+	</ul>
+}
+
+@code {
+	private List<Course> courses;
+	private string errorMessage = "Testing...";
+
+	protected override async Task OnInitializedAsync()
+	{
+		courses = await CourseService.GetAvailableCourses();
+	}
+
+	private async Task EnrollStudent(int courseId)
+	{
+		var request = new EnrollStudentRequest
+		{
+			CourseId = courseId,
+			StudentId = 1 // Hardcoded for now
+		};
+
+		try
+		{
+			var response = await CourseService.EnrollStudent(request);
+			if (response.IsSuccessStatusCode)
+			{
+				errorMessage = $"Successfully enrolled student in course {courseId}";
+				courses = await CourseService.GetAvailableCourses();
+				StateHasChanged();
+			}
+			else
+			{
+				// Post an error message to the user
+				errorMessage = "Failed to enroll student";
+			}
+		}
+		catch (Exception ex)
+		{
+			errorMessage = $"Failed to enroll student: {ex.Message}";
+		}
+
+	}
+}
