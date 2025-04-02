@@ -1,0 +1,14 @@
+@Enrollment_HostAddress = http://localhost:5184
+
+### Get all available courses
+GET {{Enrollment_HostAddress}}/courses
+Accept: application/json
+
+### Enroll a student in a course
+POST {{Enrollment_HostAddress}}/courses/enroll
+Content-Type: application/json
+{
+  "CourseId": 1,
+  "StudentId": 12100000
+}
+

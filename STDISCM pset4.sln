@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STDISCM pset4.ServiceDefaul
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Authentication", "Authentication\Authentication.csproj", "{209F5073-60F1-766D-38C7-2E1E0A347035}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Enrollment", "Enrollment\Enrollment.csproj", "{655A96A5-0A17-45FF-BD04-C73B74D40B93}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{209F5073-60F1-766D-38C7-2E1E0A347035}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{209F5073-60F1-766D-38C7-2E1E0A347035}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{209F5073-60F1-766D-38C7-2E1E0A347035}.Release|Any CPU.Build.0 = Release|Any CPU
+		{655A96A5-0A17-45FF-BD04-C73B74D40B93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{655A96A5-0A17-45FF-BD04-C73B74D40B93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{655A96A5-0A17-45FF-BD04-C73B74D40B93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{655A96A5-0A17-45FF-BD04-C73B74D40B93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -44,6 +50,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{700DAC32-1268-425E-96AD-1A40FE18B649} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{209F5073-60F1-766D-38C7-2E1E0A347035} = {F63C5635-B087-4F1A-A629-75EBB4997AD2}
+		{655A96A5-0A17-45FF-BD04-C73B74D40B93} = {F63C5635-B087-4F1A-A629-75EBB4997AD2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {212CBDA4-705D-4224-84C6-5419BD685B5D}

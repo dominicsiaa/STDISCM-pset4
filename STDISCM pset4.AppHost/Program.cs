@@ -4,4 +4,6 @@ builder.AddProject<Projects.Classify>("classify");
 
 builder.AddProject<Projects.Authentication>("authentication");
 
+builder.AddProject<Projects.Enrollment>("enrollment");
+
 builder.Build().Run();

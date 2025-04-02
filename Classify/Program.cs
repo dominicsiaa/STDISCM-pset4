@@ -3,6 +3,7 @@ using Classify.Security;
 using Classify.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,28 @@ builder.Services.AddAuthentication()
 builder.Services.AddScoped<JWTStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, JWTStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
+
+// Add services to the container.
+var apiUrls = builder.Configuration.GetSection("ApiUrls").Get<Dictionary<string, string>>();
+foreach (var apiUrl in apiUrls)
+{
+    if (string.IsNullOrEmpty(apiUrl.Value))
+    {
+        throw new InvalidOperationException($"The API URL for {apiUrl.Key} is not configured.");
+    }
+
+    builder.Services.AddHttpClient(apiUrl.Key, client =>
+    {
+        client.BaseAddress = new Uri(apiUrl.Value);
+    });
+}
+
+builder.Services.AddScoped<CourseService>(sp =>
+{
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = httpClientFactory.CreateClient("EnrollmentApi");
+    return new CourseService(httpClient);
+});
 
 var app = builder.Build();
 
