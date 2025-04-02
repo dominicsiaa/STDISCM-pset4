@@ -6,7 +6,6 @@ Accept: application/json
 
 ### Add a new course
 POST {{Enrollment_HostAddress}}/courses/add
-Accept: application/json
 Content-Type: application/json
 {
     "Code": "STDISCM",

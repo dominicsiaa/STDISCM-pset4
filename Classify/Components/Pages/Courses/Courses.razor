@@ -93,8 +93,9 @@ else
 
 @code {
     private int userId;
+    private string username;
     private List<Course> courses = [];
-    private bool isStudent;
+    private bool isStudent = true;
     private Course newCourse = new Course();
     private string statusMessage = "";
     private bool isProcessing = false;
@@ -103,17 +104,11 @@ else
     {
         if (firstRender)
         {
-            courses = await CourseService.GetAllCourses();
             await GetUserDetails();
+            courses = await CourseService.GetAllCourses();
             StateHasChanged();
         }
     }
-
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     courses = await CourseService.GetAllCourses();
-    //     await GetUserDetails();
-    // }
 
     private async Task GetUserDetails()
     {
@@ -127,6 +122,12 @@ else
                 userId = int.Parse(userIdClaim.Value);
             }
 
+            var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name);
+            if (usernameClaim != null)
+            {
+                username = usernameClaim.Value;
+            }
+
             var roleClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
             if (roleClaim != null)
             {
@@ -138,26 +139,40 @@ else
     private async Task EnrollStudent(int courseId)
     {
         isProcessing = true;
-        statusMessage = $"Enrolling {courses.Find(c => c.Id == courseId).Code}...";
+        string enrolledCourseCode = courses.Find(c => c.Id == courseId).Code;
+        statusMessage = $"Enrolling {enrolledCourseCode}...";
 
-        var request = new EnrollStudentRequest
+        var courseRequest = new EnrollStudentRequest
             {
                 CourseId = courseId,
                 StudentId = userId
             };
 
+        var studentRequest = new EnrollCourseRequest
+			{
+				Username = username,
+				CourseCode = enrolledCourseCode
+			};
+
         try
         {
-            var response = await CourseService.EnrollStudent(request);
-            if (response.IsSuccessStatusCode)
-            {
-                statusMessage = $"Successfully enrolled student in course {courseId}";
-                courses = await CourseService.GetAllCourses();
-                StateHasChanged();
+            var studentResponse = await CourseService.AddCourseToStudent(studentRequest);
+            if (studentResponse.IsSuccessStatusCode) {
+                var courseResponse = await CourseService.EnrollStudent(courseRequest);
+                if (courseResponse.IsSuccessStatusCode) 
+                {
+                    statusMessage = $"Successfully enrolled student in course {enrolledCourseCode}";
+                    courses = await CourseService.GetAllCourses();
+                    StateHasChanged();
+                }
+                else
+                {
+                    statusMessage = $"Failed to enroll student: {await courseResponse.Content.ReadAsStringAsync()}";
+                }
             }
             else
             {
-                statusMessage = "Failed to enroll student.";
+                statusMessage = $"Failed to enroll student: {await studentResponse.Content.ReadAsStringAsync()}";
             }
         }
         catch (Exception ex)
@@ -174,6 +189,7 @@ else
     {
         isProcessing = true;
         statusMessage = $"Adding course {newCourse.Code}...";
+        newCourse.InstructorId = userId;
 
         try
         {
@@ -187,7 +203,7 @@ else
             }
             else
             {
-                statusMessage = "Failed to add course.";
+                statusMessage = $"Failed to add course: {await response.Content.ReadAsStringAsync()}";
             }
         }
         catch (Exception ex)

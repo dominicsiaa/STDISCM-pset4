@@ -30,13 +30,19 @@ namespace Classify.Services
         public async Task<HttpResponseMessage> EnrollStudent(EnrollStudentRequest request)
         {
             var response = await _apiService.PostAsync(MicroserviceNames.EnrollmentAPI.GetName(), "courses/enroll", request);
-            return response.EnsureSuccessStatusCode();
+            return response;
         }
 
         public async Task<HttpResponseMessage> AddCourse(Course course)
         {
             var response = await _apiService.PostAsync(MicroserviceNames.EnrollmentAPI.GetName(), "courses/add", course);
-            return response.EnsureSuccessStatusCode();
+            return response;
+        }
+
+        public async Task<HttpResponseMessage> AddCourseToStudent(EnrollCourseRequest request)
+        {
+            var response = await _apiService.PostAsync(MicroserviceNames.AuthenticationAPI.GetName(), "enroll", request);
+            return response;
         }
     }
 
@@ -64,5 +70,11 @@ namespace Classify.Services
     {
         public int CourseId { get; set; }
         public int StudentId { get; set; }
+    }
+
+    public class EnrollCourseRequest
+    {
+        public string Username { get; set; }
+        public string CourseCode { get; set; }
     }
 }

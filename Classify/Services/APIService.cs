@@ -58,7 +58,7 @@ namespace Classify.Services
 
         public async Task<HttpResponseMessage> PostAsync(string clientName, string url, object data)
         {
-            var client = await CreateClientAsync("api");
+            var client = await CreateClientAsync(clientName);
             var response = await client.PostAsJsonAsync(url, data);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
