@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Authentication\Authentication.csproj" />
     <ProjectReference Include="..\Classify\Classify.csproj" />
 	<ProjectReference Include="..\Enrollment\Enrollment.csproj" />
+	<ProjectReference Include="..\Grades\Grades.csproj" />
   </ItemGroup>
 
 </Project>

@@ -4,6 +4,7 @@ using Classify.Model;
 using System.Net.Http;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
+using Classify.Common;
 
 namespace Classify.Services
 {
@@ -23,7 +24,7 @@ namespace Classify.Services
         {
             _accessTokenService = accessTokenService;
             _nav = nav;
-            _client = client.CreateClient("AuthenticationAPI");
+            _client = client.CreateClient(MicroserviceNames.AuthenticationAPI.GetName());
             _logger = logger;
             _refreshTokenService = refreshTokenService;
         }

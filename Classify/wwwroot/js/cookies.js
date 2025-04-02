@@ -7,12 +7,10 @@ function setCookie(name, value, days) {
         expires = "; expires=" + date.toUTCString();
     }
     document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=None; Secure";
-    console.log("Cookie set:", name, value);
 }
 
 function deleteCookie(name) {
     document.cookie = name + '=; Max-Age=-99999999;';
-    console.log("Cookie deleted:", name);
 }
 
 function getCookie(name) {
@@ -23,6 +21,5 @@ function getCookie(name) {
         while (c.charAt(0) == ' ') c = c.substring(1, c.length);
         if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
     }
-    console.log("Cookie not found:", name);
     return null;
 }
