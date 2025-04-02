@@ -42,6 +42,7 @@ foreach (var apiUrl in apiUrls)
     });
 }
 
+builder.Services.AddScoped<GradesService>();
 builder.Services.AddScoped<CourseService>(sp =>
 {
     var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
