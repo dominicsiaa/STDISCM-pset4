@@ -104,6 +104,7 @@ else
         {
             courses = await CourseService.GetAllCourses();
             await GetUserDetails();
+            StateHasChanged();
         }
     }
 

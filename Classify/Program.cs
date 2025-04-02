@@ -28,21 +28,6 @@ builder.Services.AddScoped<JWTStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, JWTStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
 
-// Add services to the container.
-var apiUrls = builder.Configuration.GetSection("ApiUrls").Get<Dictionary<string, string>>();
-foreach (var apiUrl in apiUrls)
-{
-    if (string.IsNullOrEmpty(apiUrl.Value))
-    {
-        throw new InvalidOperationException($"The API URL for {apiUrl.Key} is not configured.");
-    }
-
-    builder.Services.AddHttpClient(apiUrl.Key, client =>
-    {
-        client.BaseAddress = new Uri(apiUrl.Value);
-    });
-}
-
 builder.Services.AddScoped<GradesService>();
 builder.Services.AddScoped<CourseService>();
 
