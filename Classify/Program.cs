@@ -19,6 +19,7 @@ builder.Services.AddScoped<CookieService>();
 builder.Services.AddScoped<APIService>();
 builder.Services.AddHttpClient(MicroserviceNames.AuthenticationAPI.GetName(), client => client.BaseAddress = new Uri("https://localhost:7030/api/Authentication/"));
 builder.Services.AddHttpClient(MicroserviceNames.GradesAPI.GetName(), client => client.BaseAddress = new Uri("https://localhost:7095/api/Grades/"));
+builder.Services.AddHttpClient(MicroserviceNames.EnrollmentAPI.GetName(), client => client.BaseAddress = new Uri("https://localhost:7018/"));
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication()
@@ -43,13 +44,7 @@ foreach (var apiUrl in apiUrls)
 }
 
 builder.Services.AddScoped<GradesService>();
-builder.Services.AddScoped<CourseService>(sp =>
-{
-    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-    var httpClient = httpClientFactory.CreateClient("EnrollmentApi");
-    var httpContextAccessor = sp.GetService<HttpContextAccessor>();
-    return new CourseService(httpClient, httpContextAccessor);
-});
+builder.Services.AddScoped<CourseService>();
 
 var app = builder.Build();
 

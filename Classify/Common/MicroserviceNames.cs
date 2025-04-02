@@ -4,6 +4,7 @@
     {
         AuthenticationAPI,
         GradesAPI,
+        EnrollmentAPI
     }
 
     public static class MicroserviceNamesExtensions

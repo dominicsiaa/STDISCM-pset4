@@ -92,17 +92,26 @@ else
 
 @code {
     private int userId;
-    private List<Course> courses;
+    private List<Course> courses = [];
     private bool isStudent;
     private Course newCourse = new Course();
     private string statusMessage = "";
     private bool isProcessing = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        courses = await CourseService.GetAllCourses();
-        await GetUserDetails();
+        if (firstRender)
+        {
+            courses = await CourseService.GetAllCourses();
+            await GetUserDetails();
+        }
     }
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     courses = await CourseService.GetAllCourses();
+    //     await GetUserDetails();
+    // }
 
     private async Task GetUserDetails()
     {

@@ -2,31 +2,40 @@
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Classify.Common;
+using Newtonsoft.Json;
 
 namespace Classify.Services
 {
     public class CourseService
     {
-        private readonly HttpClient _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        public CourseService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+        private readonly APIService _apiService;
+        public CourseService(APIService apiService)
         {
-            _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
+            _apiService = apiService;
         }
         public async Task<List<Course>> GetAllCourses()
         {
-            return await _httpClient.GetFromJsonAsync<List<Course>>("courses");
+            var response = await _apiService.GetAsync(MicroserviceNames.EnrollmentAPI.GetName(), "courses");
+            if (response.IsSuccessStatusCode)
+            {
+                var courses = JsonConvert.DeserializeObject<List<Course>>(await response.Content.ReadAsStringAsync());
+                return courses;
+            }
+            else
+            {
+                return new List<Course>();
+            }
         }
         public async Task<HttpResponseMessage> EnrollStudent(EnrollStudentRequest request)
         {
-            var response = await _httpClient.PostAsJsonAsync("courses/enroll", request);
+            var response = await _apiService.PostAsync(MicroserviceNames.EnrollmentAPI.GetName(), "courses/enroll", request);
             return response.EnsureSuccessStatusCode();
         }
 
         public async Task<HttpResponseMessage> AddCourse(Course course)
         {
-            var response = await _httpClient.PostAsJsonAsync("courses/add", course);
+            var response = await _apiService.PostAsync(MicroserviceNames.EnrollmentAPI.GetName(), "courses/add", course);
             return response.EnsureSuccessStatusCode();
         }
     }
