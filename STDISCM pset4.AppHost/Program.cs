@@ -6,4 +6,6 @@ builder.AddProject<Projects.Authentication>("authentication");
 
 builder.AddProject<Projects.Enrollment>("enrollment");
 
+builder.AddProject<Projects.Grades>("grades");
+
 builder.Build().Run();

@@ -1,0 +1,48 @@
+﻿@page "/grades"
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@inject GradesService GradesService
+
+<PageTitle>Grades</PageTitle>
+
+<h1>Grades</h1>
+
+<p>This component demonstrates showing student grades.</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date Recorded</th>
+            <th>Name</th>
+            <th>Teacher ID</th>
+            <th>Score</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var grade in grades)
+        {
+            <tr>
+                <td>@grade.DateRecorded.ToShortDateString()</td>
+                <td>@grade.Name</td>
+                <td>@grade.TeacherId</td>
+                <td>@grade.Score</td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    private List<Grade> grades = [];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            grades = await GradesService.GetGrades();
+            StateHasChanged();
+        }
+    }
+}
