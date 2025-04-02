@@ -22,7 +22,7 @@ namespace Enrollment.Infrastructure
 
         public IEnumerable<Course> GetAllCourses()
         {
-            return _context.Courses;
+            return _context.Courses.ToList();
         }
 
         public bool AddCourse(Course course)
