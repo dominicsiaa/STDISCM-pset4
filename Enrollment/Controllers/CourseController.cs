@@ -9,15 +9,18 @@ namespace Enrollment.Controllers
     public class CourseController : ControllerBase
     {
         private readonly ICourseService _courseService;
+        private readonly ILogger<CourseController> _logger;
 
-        public CourseController(ICourseService courseService)
+        public CourseController(ICourseService courseService, ILogger<CourseController> logger)
         {
             _courseService = courseService;
+            _logger = logger;
         }
 
         [HttpGet]
         public IEnumerable<Course> Get()
         {
+            _logger.LogInformation("Get Method Called");
             return _courseService.GetAllCourses();
         }
 
