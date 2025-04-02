@@ -1,7 +1,10 @@
 ﻿@page "/courses"
 @rendermode InteractiveServer
-@inject Classify.Services.CourseService CourseService
+@inject CourseService CourseService
+@inject JWTStateProvider JWTStateProvider
 @using Classify.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 
 <h3>Courses</h3>
 
@@ -12,32 +15,98 @@
 else
 {
 	<ul>
-		@errorMessage
+		@statusMessage
 		@foreach (var course in courses)
 		{
 			<li>
 				@course.Code - @course.StudentIds.Count/@course.Capacity
-				<button class="btn btn-primary ms-2" @onclick="() => EnrollStudent(course.Id)">Enroll</button>
+				@if (@course.StudentIds.Count < @course.Capacity && !@course.isEnrolled(userId) && isStudent)
+				{
+					<button class="btn btn-primary ms-2" 
+					@onclick="() => EnrollStudent(course.Id)"
+					>
+						Enroll
+					</button>
+				}
 			</li>
 		}
 	</ul>
 }
 
+@if (!isStudent)
+{
+	<h4>Add New Course</h4>
+	<EditForm Model="newCourse" OnValidSubmit="AddCourse">
+		<DataAnnotationsValidator />
+		<ValidationSummary />
+		<div class="mb-3">
+			<label for="code" class="form-label">Course Code</label>
+			<InputText id="code" class="form-control" @bind-Value="newCourse.Code" />
+		</div>
+		<div class="mb-3">
+			<label for="units" class="form-label">Units</label>
+			<InputNumber id="units" class="form-control" @bind-Value="newCourse.Units" />
+		</div>
+		<div class="mb-3">
+			<label for="capacity" class="form-label">Capacity</label>
+			<InputNumber id="capacity" class="form-control" @bind-Value="newCourse.Capacity" />
+		</div>
+		<button type="submit" class="btn btn-primary">Add Course</button>
+	</EditForm>
+}
+
 @code {
+	private int userId;
 	private List<Course> courses;
-	private string errorMessage = "Testing...";
+	private bool isStudent;
+	private Course newCourse = new Course();
+	private string statusMessage = "";
 
 	protected override async Task OnInitializedAsync()
 	{
-		courses = await CourseService.GetAvailableCourses();
+		courses = await CourseService.GetAllCourses();
+		userId = await getAndAuthenticateUserId();
+		isStudent = await checkIfStudent();
+	}
+
+	private async Task<int> getAndAuthenticateUserId()
+	{
+		var authState = await JWTStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		if (user.Identity.IsAuthenticated)
+		{
+			var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+			if (userIdClaim != null)
+			{
+				return int.Parse(userIdClaim.Value);
+			}
+		}
+		return -1;
+	}
+
+	private async Task<bool> checkIfStudent()
+	{
+		var authState = await JWTStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		if (user.Identity.IsAuthenticated)
+		{
+			var roleClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+			if (roleClaim != null)
+			{
+				return roleClaim.Value == "Student";
+			}
+		}
+		return false;
 	}
 
 	private async Task EnrollStudent(int courseId)
 	{
+		statusMessage = $"Enrolling {courses.Find(c => c.Id == courseId).Code}...";
+		
 		var request = new EnrollStudentRequest
 		{
 			CourseId = courseId,
-			StudentId = 1 // Hardcoded for now
+			StudentId = userId
 		};
 
 		try
@@ -45,20 +114,43 @@ else
 			var response = await CourseService.EnrollStudent(request);
 			if (response.IsSuccessStatusCode)
 			{
-				errorMessage = $"Successfully enrolled student in course {courseId}";
-				courses = await CourseService.GetAvailableCourses();
+				statusMessage = $"Successfully enrolled student in course {courseId}";
+				courses = await CourseService.GetAllCourses();
 				StateHasChanged();
 			}
 			else
 			{
-				// Post an error message to the user
-				errorMessage = "Failed to enroll student";
+				statusMessage = "Failed to enroll student.";
 			}
 		}
 		catch (Exception ex)
 		{
-			errorMessage = $"Failed to enroll student: {ex.Message}";
+			statusMessage = $"Failed to enroll student: {ex.Message}";
 		}
+	}
 
+	private async Task AddCourse()
+	{
+		statusMessage = $"Adding course {newCourse.Code}...";
+
+		try
+		{
+			var response = await CourseService.AddCourse(newCourse);
+			if (response.IsSuccessStatusCode)
+			{
+				statusMessage = $"Successfully added course {newCourse.Code}";
+				courses = await CourseService.GetAllCourses();
+				newCourse = new Course();
+				StateHasChanged();
+			}
+			else
+			{
+				statusMessage = "Failed to add course.";
+			}
+		}
+		catch (Exception ex)
+		{
+			statusMessage = $"Failed to add course: {ex.Message}";
+		}
 	}
 }

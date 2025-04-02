@@ -4,6 +4,18 @@
 GET {{Enrollment_HostAddress}}/courses
 Accept: application/json
 
+### Add a new course
+POST {{Enrollment_HostAddress}}/courses/add
+Accept: application/json
+Content-Type: application/json
+{
+    "Code": "STDISCM",
+    "Units": 3,
+    "Capacity": 30,
+    "InstructorId": 1,
+    "StudentIds": []
+}
+
 ### Enroll a student in a course
 POST {{Enrollment_HostAddress}}/courses/enroll
 Content-Type: application/json

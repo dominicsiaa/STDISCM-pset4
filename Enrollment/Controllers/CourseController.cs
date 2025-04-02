@@ -18,7 +18,7 @@ namespace Enrollment.Controllers
         [HttpGet]
         public IEnumerable<Course> Get()
         {
-            return _courseService.GetAvailableCourses();
+            return _courseService.GetAllCourses();
         }
 
         [HttpPost("enroll")]
@@ -28,6 +28,17 @@ namespace Enrollment.Controllers
             if (!result)
             {
                 return BadRequest("Enrollment failed");
+            }
+            return Ok();
+        }
+
+        [HttpPost("add")]
+        public ActionResult AddCourse(Course course)
+        {
+            var result = _courseService.AddCourse(course);
+            if (!result)
+            {
+                return BadRequest("Course already exists");
             }
             return Ok();
         }

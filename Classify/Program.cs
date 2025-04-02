@@ -26,6 +26,8 @@ builder.Services.AddScoped<JWTStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, JWTStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
 
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
 // Add services to the container.
 var apiUrls = builder.Configuration.GetSection("ApiUrls").Get<Dictionary<string, string>>();
 foreach (var apiUrl in apiUrls)
@@ -45,7 +47,8 @@ builder.Services.AddScoped<CourseService>(sp =>
 {
     var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
     var httpClient = httpClientFactory.CreateClient("EnrollmentApi");
-    return new CourseService(httpClient);
+    var httpContextAccessor = sp.GetService<HttpContextAccessor>();
+    return new CourseService(httpClient, httpContextAccessor);
 });
 
 var app = builder.Build();
