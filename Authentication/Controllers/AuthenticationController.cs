@@ -48,9 +48,56 @@ namespace Authentication.Controllers
 
             var token = tokenProvider.GenerateToken(user);
             response.AccessToken = token.AccessToken;
+            response.RefreshToken = token.RefreshToken.Token;
 
-            return response;
+            dataAccess.DisableUserTokensByUsername(user.Username);
+            dataAccess.InsertRefreshToken(token.RefreshToken, user.Id);
+
+            return Ok(response);
         }
 
+        [HttpPost("refresh")]
+        public ActionResult<AuthResponse> RefreshToken()
+        {
+            AuthResponse response = new AuthResponse();
+
+            var refreshToken = Request.Cookies["refreshtoken"];
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                return BadRequest("Refresh token is required");
+            }
+
+            var isValid = dataAccess.IsRefreshTokenValid(refreshToken);
+            if (!isValid)
+            {
+                return BadRequest("Refresh token is invalid");
+            }
+
+            var user = dataAccess.FindUserByToken(refreshToken);
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+
+            var token = tokenProvider.GenerateToken(user);
+            response.AccessToken = token.AccessToken;
+            response.RefreshToken = token.RefreshToken.Token;
+
+            dataAccess.DisableUserToken(refreshToken);
+            dataAccess.InsertRefreshToken(token.RefreshToken, user.Id);
+            return Ok(response);
+        }
+
+        [HttpPost("logout")]
+        public ActionResult LogOut()
+        {
+            var refreshToken = Request.Cookies["refreshtoken"];
+            if (refreshToken != null)
+            {
+                dataAccess.DisableUserToken(refreshToken);
+            }
+
+            return Ok();
+        }
     }
 }

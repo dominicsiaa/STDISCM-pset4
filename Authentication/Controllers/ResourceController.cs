@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
+// DONT MIND THIS, WILL BE DELETED, JUST FOR TESTING
+
 namespace Authentication.Controllers
 {
     [Route("api/[controller]")]

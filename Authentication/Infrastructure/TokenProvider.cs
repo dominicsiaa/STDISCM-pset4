@@ -17,6 +17,7 @@ namespace Authentication.Infrastructure
 
         public Token GenerateToken(User user)
         {
+            // Access Token
             string secretKey = configuration["Jwt:SecretKey"];
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -32,15 +33,25 @@ namespace Authentication.Infrastructure
                 Issuer = configuration["Jwt:Issuer"],
                 Audience = configuration["Jwt:Audience"]
             };
-
             var accessToken = new JsonWebTokenHandler().CreateToken(tokenDescriptor: tokenDescriptor);
 
-            return new Token { AccessToken = accessToken };
+            // Refresh Token
+            var refreshToken = new RefreshToken
+            {
+                Token = Guid.NewGuid().ToString(),
+                Expires = DateTime.Now.AddDays(7),
+                CreatedAt = DateTime.Now,
+                Enabled = true
+            };
+
+            // Return
+            return new Token { AccessToken = accessToken, RefreshToken = refreshToken };
         }
     }
 
     public class Token
     {
         public string AccessToken { get; set; }
+        public RefreshToken RefreshToken { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using Classify.Components;
+using Classify.Security;
 using Classify.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,20 +12,18 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddScoped<AccessTokenService>();
+builder.Services.AddScoped<RefreshTokenService>();
+builder.Services.AddScoped<CookieService>();
+builder.Services.AddHttpClient("AuthenticationAPI", client => client.BaseAddress = new Uri("https://localhost:7030/api/Authentication/"));
+
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication()
+    .AddScheme<CustomOption, JWTAuthenticationProvider>("JWTAuth", options => { });
+builder.Services.AddScoped<JWTStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, JWTStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
-})
-    .AddIdentityCookies();
-builder.Services.AddScoped<CookieEvents>();
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.EventsType = typeof(CookieEvents);
-});
 
 var app = builder.Build();
 
