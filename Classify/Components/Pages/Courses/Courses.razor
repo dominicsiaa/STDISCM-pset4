@@ -7,89 +7,147 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 
+
+@if (!string.IsNullOrEmpty(statusMessage))
+{
+    <div class="alert alert-info" role="alert">
+        @statusMessage
+    </div>
+}
+
 @if (!isStudent)
 {
-    <h4>Add New Course</h4>
-    <EditForm Model="newCourse" OnValidSubmit="AddCourse">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-        <div class="mb-3">
-            <label for="code" class="form-label">Course Code</label>
-            <InputText id="code" class="form-control" @bind-Value="newCourse.Code" />
-        </div>
-        <div class="mb-3">
-            <label for="units" class="form-label">Units</label>
-            <InputNumber id="units" class="form-control" @bind-Value="newCourse.Units" />
-        </div>
-        <div class="mb-3">
-            <label for="capacity" class="form-label">Capacity</label>
-            <InputNumber id="capacity" class="form-control" @bind-Value="newCourse.Capacity" />
-        </div>
-        <button type="submit" class="btn btn-primary" disabled="@isProcessing">
-            @if (isProcessing)
-            {
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <span>Adding...</span>
-            }
-            else
-            {
-                <span>Add Course</span>
-            }
-        </button>
-    </EditForm>
-}
-
-<h3>Courses</h3>
-
-@if (courses == null)
-{
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <div class="my-2">
+        <h4>Add New Course</h4>
+        <EditForm Model="newCourse" OnValidSubmit="AddCourse">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="mb-3">
+                <label for="code" class="form-label">Course Code</label>
+                <InputText id="code" class="form-control" @bind-Value="newCourse.Code" />
+            </div>
+            <div class="mb-3">
+                <label for="units" class="form-label">Units</label>
+                <InputNumber id="units" class="form-control" @bind-Value="newCourse.Units" />
+            </div>
+            <div class="mb-3">
+                <label for="capacity" class="form-label">Capacity</label>
+                <InputNumber id="capacity" class="form-control" @bind-Value="newCourse.Capacity" />
+            </div>
+            <button type="submit" class="btn btn-primary mb-3" disabled="@isProcessing">
+                @if (isProcessing)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span>Adding...</span>
+                }
+                else
+                {
+                    <span>Add Course</span>
+                }
+            </button>
+        </EditForm>
     </div>
 }
-else
-{
-    @if (!string.IsNullOrEmpty(statusMessage))
+
+<div class="my-2">
+    @if (courses == null)
     {
-        <div class="alert alert-info" role="alert">
-            @statusMessage
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
     }
-
-    <div class="row">
-        @foreach (var course in courses)
+    else
+    {
+        @if (isStudent)
         {
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">@course.Code</h5>
-                        <h6 class="card-subtitle">Instructor ID: @course.InstructorId</h6>
-                        <p class="card-text">
-                            Units: @course.Units
-                        </p>
-                        <p class="card-text fw-bold">
-                            Students: @course.StudentIds.Count/@course.Capacity
-                        </p>
-                        @if (@course.StudentIds.Count < @course.Capacity && !@course.isEnrolled(userId) && isStudent)
-                        {
-                            <button class="btn btn-primary" @onclick="() => EnrollStudent(course.Id)" disabled="@isProcessing">
-                                @if (isProcessing)
-                                {
-                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                    <span>Enrolling...</span>
-                                }
-                                else
-                                {
-                                    <span>Enroll</span>
-                                }
-                            </button>
-                        }
+            <h4>Enrolled Courses</h4>
+            <div class="row">
+                @foreach (var course in courses.Where(c => c.isEnrolled(userId)))
+                {
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">@course.Code</h5>
+                                <h6 class="card-subtitle">Instructor ID: @course.InstructorId</h6>
+                                <p class="card-text">
+                                    Units: @course.Units
+                                </p>
+                                <p class="card-text fw-bold">
+                                    Students: @course.StudentIds.Count/@course.Capacity
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                }
             </div>
         }
-    </div>
-}
+        else
+        {
+            <h4>My Courses</h4>
+            <div class="row">
+                @foreach (var course in courses.Where(c => c.InstructorId == userId))
+                {
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">@course.Code</h5>
+                                <p class="card-text">
+                                    Units: @course.Units
+                                </p>
+                                <p class="card-text fw-bold">
+                                    Students: @course.StudentIds.Count/@course.Capacity
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        <div>
+            <h4>All Courses</h4>
+            <div class="row">
+                @foreach (var course in courses)
+                {
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">@course.Code</h5>
+                                <h6 class="card-subtitle">Instructor ID: @course.InstructorId</h6>
+                                <p class="card-text">
+                                    Units: @course.Units
+                                </p>
+                                <p class="card-text fw-bold">
+                                    Students: @course.StudentIds.Count/@course.Capacity
+                                </p>
+                                @if (@course.StudentIds.Count < @course.Capacity && !@course.isEnrolled(userId) && isStudent)
+                                {
+                                    <button class="btn btn-primary" @onclick="() => EnrollStudent(course.Id)" disabled="@isProcessing">
+                                        @if (isProcessing)
+                                        {
+                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            <span>Enrolling...</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Enroll</span>
+                                        }
+                                    </button>
+                                }
+								@if (@course.isEnrolled(userId) && isStudent)
+								{
+									<button class="btn btn-success" disabled>
+										<span>Enrolled</span>
+									</button>
+								}
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
 
 @code {
     private int userId;
@@ -149,17 +207,18 @@ else
             };
 
         var studentRequest = new EnrollCourseRequest
-			{
-				Username = username,
-				CourseCode = enrolledCourseCode
-			};
+            {
+                Username = username,
+                CourseCode = enrolledCourseCode
+            };
 
         try
         {
             var studentResponse = await CourseService.AddCourseToStudent(studentRequest);
-            if (studentResponse.IsSuccessStatusCode) {
+            if (studentResponse.IsSuccessStatusCode)
+            {
                 var courseResponse = await CourseService.EnrollStudent(courseRequest);
-                if (courseResponse.IsSuccessStatusCode) 
+                if (courseResponse.IsSuccessStatusCode)
                 {
                     statusMessage = $"Successfully enrolled student in course {enrolledCourseCode}";
                     courses = await CourseService.GetAllCourses();

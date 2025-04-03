@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -50,7 +51,9 @@ namespace Classify.Services
     {
         public int Id { get; set; }
         public string Code { get; set; }
+        [Range(0, 9, ErrorMessage = "Courses can only be 0 to 9 units")]
         public int Units { get; set; }
+        [Range(1, 100, ErrorMessage = "Courses can only have 1 to 100 students")]
         public int Capacity { get; set; }
         public int InstructorId { get; set; }
         public List<int> StudentIds { get; set; }
