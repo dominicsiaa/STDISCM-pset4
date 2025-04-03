@@ -24,20 +24,15 @@ namespace Grades.Infrastructure
             return _context.Grades.FirstOrDefault(g => g.Id == id);
         }
 
-        public bool InsertGrade(GradeRequest gradeRequest)
+        public bool InsertGrade(Grade grade)
         {
-            var grade = new Grade
-            {
-                Name = gradeRequest.Name,
-                StudentId = gradeRequest.StudentId,
-                TeacherId = gradeRequest.TeacherId,
-                Score = gradeRequest.Score,
-                DateRecorded = DateTime.Now
-            };
-
+            // Students can only have one grade per course
+            if (_context.Grades.Any(g => 
+                g.CourseCode == grade.CourseCode && 
+                g.StudentId == grade.StudentId))
+                return false;
             _context.Grades.Add(grade);
             _context.SaveChanges();
-
             return true;
         }
 

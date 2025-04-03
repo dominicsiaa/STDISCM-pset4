@@ -7,5 +7,14 @@ namespace Grades.Infrastructure
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
         public DbSet<Grade> Grades { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Grade>()
+                .HasIndex(g => g.Id)
+                .IsUnique();
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

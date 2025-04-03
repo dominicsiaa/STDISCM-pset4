@@ -1,8 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Classify.Common;
 using Newtonsoft.Json;
 

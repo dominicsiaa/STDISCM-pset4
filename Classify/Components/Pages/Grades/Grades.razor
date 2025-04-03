@@ -1,48 +1,255 @@
 ﻿@page "/grades"
 @attribute [Authorize]
-@rendermode InteractiveServer
-
 @inject GradesService GradesService
-
-<PageTitle>Grades</PageTitle>
-
-<h1>Grades</h1>
-
-<p>This component demonstrates showing student grades.</p>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Date Recorded</th>
-            <th>Name</th>
-            <th>Teacher ID</th>
-            <th>Score</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var grade in grades)
-        {
-            <tr>
-                <td>@grade.DateRecorded.ToShortDateString()</td>
-                <td>@grade.Name</td>
-                <td>@grade.TeacherId</td>
-                <td>@grade.Score</td>
-
-            </tr>
-        }
-    </tbody>
-</table>
-
+@inject CourseService CourseService
+@inject JWTStateProvider JWTStateProvider
+@rendermode InteractiveServer
+@using Classify.Services
+@using Classify.Model
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 
 @code {
-    private List<Grade> grades = [];
+    private int userId;
+    private List<Course> courses = null;
+    private List<Grade> grades = null;
+    private bool isStudent = true;
+    private string newGPA = "0.0";
+    private string statusMessage = "";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            grades = await GradesService.GetGrades();
-            StateHasChanged();
+            await LoadDataAsync();
         }
     }
+
+    private async Task LoadDataAsync()
+    {
+        var userDetailsTask = GetUserDetails();
+        var coursesTask = CourseService.GetAllCourses();
+
+        await Task.WhenAll(userDetailsTask, coursesTask);
+
+        if (isStudent)
+        {
+            grades = await GradesService.GetGradesOfStudent(userId);
+        }
+        else
+        {
+            grades = await GradesService.GetStudentGrades(userId);
+        }
+
+        var allCourses = await coursesTask;
+        if (isStudent)
+        {
+            courses = allCourses.Where(c => c.StudentIds.Contains(userId)).ToList();
+        }
+        else
+        {
+            courses = allCourses.Where(c => c.InstructorId == userId).ToList();
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task GetUserDetails()
+    {
+        var authState = await JWTStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim != null)
+            {
+                userId = int.Parse(userIdClaim.Value);
+            }
+
+            var roleClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+            if (roleClaim != null)
+            {
+                isStudent = roleClaim.Value == "Student";
+            }
+        }
+    }
+
+    private double CalculateCgpa(List<Grade> grades)
+    {
+        if (grades == null || grades.Count == 0) return 0.0;
+
+        double totalWeightedGpa = 0.0;
+        int totalUnits = 0;
+
+        foreach (var grade in grades)
+        {
+            var course = courses.FirstOrDefault(c => c.Code == grade.CourseCode);
+            if (course != null)
+            {
+                totalWeightedGpa += course.Units * grade.Gpa;
+                totalUnits += course.Units;
+            }
+        }
+
+        return totalUnits > 0 ? totalWeightedGpa / totalUnits : 0.0;
+    }
+
+    private List<Grade> GetGradesForCourse(string courseCode)
+    {
+        return grades.Where(g => g.CourseCode == courseCode).ToList();
+    }
+
+    private async Task SubmitGrade(int studentId, string courseCode)
+    {
+        statusMessage = $"Grading student {studentId} in {courseCode}...";
+
+		Grade newGrade = new Grade
+			{
+				StudentId = studentId,
+				InstructorId = userId,
+				CourseCode = courseCode,
+				Gpa = double.Parse(newGPA)
+			};
+
+        try
+        {
+            var response = await GradesService.AddGrade(newGrade);
+            if (response.IsSuccessStatusCode)
+            {
+                statusMessage = $"Grade {newGPA} submitted for student {studentId} in {courseCode}.";
+				newGPA = "0.0"; // Reset the new GPA after submission
+				await LoadDataAsync(); // Reload data to reflect changes
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                statusMessage = $"Error submitting grade: {errorMessage}";
+            }
+        }
+		catch (Exception ex)
+		{
+			statusMessage = $"Error submitting grade: {ex.Message}";
+		}
+    }
 }
+
+<div class="my-2">
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="alert alert-info" role="alert">
+            @statusMessage
+        </div>
+    }
+
+    @if (courses == null || grades == null)
+    {
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    }
+    else
+    {
+        <h4>My Courses</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Course Code</th>
+                    @if (!isStudent)
+                    {
+                        <th>Student ID</th>
+                    }
+                    <th>Grade</th>
+                    @if (!isStudent)
+                    {
+                        <th>Action</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (!isStudent)
+                {
+                    foreach (var course in courses)
+                    {
+                        var courseGrades = GetGradesForCourse(course.Code);
+                        foreach (var studentId in course.StudentIds)
+                        {
+                            var grade = courseGrades?.FirstOrDefault(g => g.StudentId == studentId);
+                            <tr>
+                                <td>@course.Code</td>
+                                <td>@studentId</td>
+                                <td>
+                                    @if (grade == null)
+                                    {
+                                        <span>NGS</span>
+                                    }
+                                    else if (grade.Gpa == 0.0)
+                                    {
+                                        <span style="color: red;">0.0</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@string.Format("{0:F1}", grade.Gpa)</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (grade == null)
+                                    {
+                                        <EditForm Model="newGPA" OnValidSubmit="async () => await SubmitGrade(studentId, course.Code)">
+                                            <div class="d-flex align-items-center">
+                                                <InputSelect @bind-Value="newGPA" 
+                                                                class="form-select form-select-sm me-2" 
+                                                                style="width: 100px"
+                                                >
+                                                    <option value="0.0">0.0</option>
+                                                    <option value="1.0">1.0</option>
+                                                    <option value="2.0">2.0</option>
+                                                    <option value="2.5">2.5</option>
+                                                    <option value="3.0">3.0</option>
+                                                    <option value="3.5">3.5</option>
+                                                    <option value="4.0">4.0</option>
+                                                </InputSelect>
+                                                <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+                                            </div>
+                                        </EditForm>
+                                    }
+								    else
+								    {
+									    <span>Grade Submitted</span>
+								    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var course in courses)
+                    {
+                        var grade = GetGradesForCourse(course.Code)?.FirstOrDefault();
+                        <tr>
+                            <td>@course.Code</td>
+                            <td>
+                                @if (grade == null)
+                                {
+                                    <span>NGS</span>
+                                }
+                                else if (grade.Gpa == 0.0)
+                                {
+                                    <span style="color: red;">0.0</span>
+                                }
+                                else
+                                {
+                                    <span>@string.Format("{0:F1}", grade.Gpa)</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+        @if (isStudent)
+        {
+            <p>CGPA: @string.Format("{0:F3}", CalculateCgpa(grades))</p>
+        }
+    }
+</div>

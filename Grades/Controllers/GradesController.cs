@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Grades.Model;
+﻿using Grades.Model;
 using Grades.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Grades.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("grades")]
     [ApiController]
     public class GradesController : ControllerBase
     {
@@ -18,30 +18,40 @@ namespace Grades.Controllers
         }
 
         [Authorize]
-        [HttpGet]
-        public ActionResult<IEnumerable<Grade>> GetAll()
+        [HttpGet("instructor")]
+        public ActionResult<IEnumerable<Grade>> GetStudentGrades([FromQuery] int instructorId)
         {
-            var grades = _dataAccess.GetGrades();
+            var grades = _dataAccess.GetGrades().Where(g => g.InstructorId == instructorId).ToList();
+            if (grades == null || !grades.Any())
+            {
+                return NotFound("No grades found for the specified instructor.");
+            }
             return Ok(grades);
         }
 
         [Authorize]
-        [HttpPost]
-        public ActionResult AddGrade(GradeRequest gradeRequest)
+        [HttpGet("student")]
+        public ActionResult<IEnumerable<Grade>> GetGradesOfStudent([FromQuery] int studentId)
+        {
+            var grades = _dataAccess.GetGrades().Where(g => g.StudentId == studentId).ToList();
+            if (grades == null || !grades.Any())
+            {
+                return NotFound("No grades found for the specified student.");
+            }
+            return Ok(grades);
+        }
+
+        [Authorize]
+        [HttpPost("add")]
+        public ActionResult AddGrade(Grade grade)
         {
             _logger.LogInformation("AddGrade method called");
-            if (gradeRequest == null)
+            var result = _dataAccess.InsertGrade(grade);
+            if (!result)
             {
-                return BadRequest("Grade request is null.");
+                return BadRequest("Grade already exists for this course and student.");
             }
-
-            var success = _dataAccess.InsertGrade(gradeRequest);
-            if (success)
-            {
-                return Ok();
-            }
-
-            return StatusCode(StatusCodes.Status500InternalServerError, "Unable to add grade.");
+            return Ok("Grade added successfully.");
         }
     }
 }

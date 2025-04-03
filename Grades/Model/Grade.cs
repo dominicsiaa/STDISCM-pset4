@@ -7,13 +7,13 @@ namespace Grades.Model
         [Key]
         public int Id { get; set; }
         [Required]
-        public string Name { get; set; }
+        public string CourseCode { get; set; }
         [Required]
         public int StudentId { get; set; }
         [Required]
-        public int TeacherId { get; set; }
+        public int InstructorId { get; set; }
         [Required]
-        public double Score { get; set; }
+        public double Gpa { get; set; }
         public DateTime DateRecorded { get; set; } = DateTime.Now;
     }
 }
