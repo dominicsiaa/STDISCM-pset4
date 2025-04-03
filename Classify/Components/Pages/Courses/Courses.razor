@@ -7,7 +7,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 
-
 @if (!string.IsNullOrEmpty(statusMessage))
 {
     <div class="alert alert-info" role="alert">
@@ -133,12 +132,12 @@
                                         }
                                     </button>
                                 }
-								@if (@course.isEnrolled(userId) && isStudent)
-								{
-									<button class="btn btn-success" disabled>
-										<span>Enrolled</span>
-									</button>
-								}
+                                @if (@course.isEnrolled(userId) && isStudent)
+                                {
+                                    <button class="btn btn-success" disabled>
+                                        <span>Enrolled</span>
+                                    </button>
+                                }
                             </div>
                         </div>
                     </div>
@@ -148,11 +147,10 @@
     }
 </div>
 
-
 @code {
     private int userId;
     private string username;
-    private List<Course> courses = [];
+    private List<Course> courses = null;
     private bool isStudent = true;
     private Course newCourse = new Course();
     private string statusMessage = "";
@@ -162,10 +160,19 @@
     {
         if (firstRender)
         {
-            await GetUserDetails();
-            courses = await CourseService.GetAllCourses();
-            StateHasChanged();
+            await LoadDataAsync();
         }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var userDetailsTask = GetUserDetails();
+        var coursesTask = CourseService.GetAllCourses();
+
+        await Task.WhenAll(userDetailsTask, coursesTask);
+
+        courses = await coursesTask;
+        StateHasChanged();
     }
 
     private async Task GetUserDetails()
