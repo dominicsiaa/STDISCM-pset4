@@ -100,22 +100,5 @@ namespace Authentication.Controllers
 
             return Ok();
         }
-
-        [Authorize]
-        [HttpPost("enroll")]
-        public ActionResult Enroll(EnrollRequest request)
-        {
-            var user = dataAccess.GetUser(request.Username);
-            if (user == null)
-            {
-                return BadRequest("User not found");
-            }
-            var result = dataAccess.AddCourseToStudent(request.Username, request.CourseCode);
-            if (!result)
-            {
-                return BadRequest("User is already enrolled in this course");
-            }
-            return Ok();
-        }
     }
 }

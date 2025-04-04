@@ -12,7 +12,5 @@ namespace Authentication.Model
         public string PasswordHash { get; set; } = string.Empty;
         [Required]
         public string Role { get; set; } = string.Empty;
-        [Required]
-        public List<string> Courses { get; set; } = new List<string>();
     }
 }

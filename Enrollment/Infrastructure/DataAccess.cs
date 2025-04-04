@@ -11,10 +11,17 @@ namespace Enrollment.Infrastructure
             _context.Database.EnsureCreated();
         }
         public void Dispose() => _context.Dispose();
-        public bool EnrollStudent(int courseId, int studentId)
+        public bool EnrollStudent(int courseId, int studentId, string courseCode)
         {
+            // To check if course exists and if student is already enrolled in the course
             var course = _context.Courses.Find(courseId);
-            if (course == null) return false;
+            var studentEnrolled = _context.Courses
+                .Where(c => c.Code == courseCode)
+                .AsEnumerable()
+                .SelectMany(c => c.StudentIds)
+                .Any(s => s == studentId);
+            if (course == null || studentEnrolled)
+                return false;
             var isEnrollmentSuccessful = course.EnrollStudent(studentId);
             if (isEnrollmentSuccessful) _context.SaveChanges();
             return isEnrollmentSuccessful;

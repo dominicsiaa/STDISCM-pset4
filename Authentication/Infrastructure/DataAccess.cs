@@ -34,18 +34,6 @@ namespace Authentication.Infrastructure
             return _context.Users.FirstOrDefault(u => u.Username == username);
         }
 
-        public bool AddCourseToStudent(string username, string course)
-        {
-            var user = _context.Users.FirstOrDefault(u => u.Username == username);
-            if (user == null || 
-                user.Role != "Student" ||
-                user.Courses.Contains(course))
-                return false;
-            user.Courses.Add(course);
-            _context.SaveChanges();
-            return true;
-        }
-
         public bool InsertRefreshToken(RefreshToken refreshToken, int userId)
         {
             if (_context.RefreshTokens.Any(rt => rt.Token == refreshToken.Token))

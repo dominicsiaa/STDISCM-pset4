@@ -30,10 +30,10 @@ namespace Enrollment.Controllers
         [HttpPost("enroll")]
         public ActionResult EnrollStudent(EnrollStudentRequest request)
         {
-            var result = _courseService.EnrollStudent(request.CourseId, request.StudentId);
+            var result = _courseService.EnrollStudent(request.CourseId, request.StudentId, request.CourseCode);
             if (!result)
             {
-                return BadRequest("Course is currently unavailable for students");
+                return BadRequest("You are already enrolled in this course.");
             }
             return Ok();
         }

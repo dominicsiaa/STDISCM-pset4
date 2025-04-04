@@ -4,6 +4,7 @@
 @inject JWTStateProvider JWTStateProvider
 @inject ILogger<Courses> _logger;
 @using Classify.Services
+@using Classify.Model
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 
@@ -60,8 +61,13 @@
         @if (isStudent)
         {
             <h4>Enrolled Courses</h4>
+			var enrolledCourses = courses.Where(c => c.isEnrolled(userId)).ToList();
+			if (enrolledCourses.Count == 0)
+			{
+				<p>You are not enrolled in any courses.</p>
+			}
             <div class="row">
-                @foreach (var course in courses.Where(c => c.isEnrolled(userId)))
+                @foreach (var course in enrolledCourses)
                 {
                     <div class="col-md-4 mb-3">
                         <div class="card">
@@ -83,8 +89,13 @@
         else
         {
             <h4>My Courses</h4>
+			var instructorCourses = courses.Where(c => c.InstructorId == userId).ToList();
+			if (instructorCourses.Count == 0)
+            {
+                <p>You have no courses.</p>
+            }
             <div class="row">
-                @foreach (var course in courses.Where(c => c.InstructorId == userId))
+                @foreach (var course in instructorCourses)
                 {
                     <div class="col-md-4 mb-3">
                         <div class="card">
@@ -104,6 +115,10 @@
         }
         <div>
             <h4>All Courses</h4>
+            @if (courses.Count == 0)
+			{
+				<p>No courses available.</p>
+			}
             <div class="row">
                 @foreach (var course in courses)
                 {
@@ -120,7 +135,7 @@
                                 </p>
                                 @if (@course.StudentIds.Count < @course.Capacity && !@course.isEnrolled(userId) && isStudent)
                                 {
-                                    <button class="btn btn-primary" @onclick="() => EnrollStudent(course.Id)" disabled="@isProcessing">
+                                    <button class="btn btn-primary" @onclick="() => EnrollStudent(course.Id, course.Code)" disabled="@isProcessing">
                                         @if (isProcessing)
                                         {
                                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -201,44 +216,30 @@
         }
     }
 
-    private async Task EnrollStudent(int courseId)
+    private async Task EnrollStudent(int courseId, string courseCode)
     {
-        isProcessing = true;
-        string enrolledCourseCode = courses.Find(c => c.Id == courseId).Code;
-        statusMessage = $"Enrolling {enrolledCourseCode}...";
-
-        var courseRequest = new EnrollStudentRequest
-            {
-                CourseId = courseId,
-                StudentId = userId
-            };
-
-        var studentRequest = new EnrollCourseRequest
-            {
-                Username = username,
-                CourseCode = enrolledCourseCode
-            };
-
         try
         {
-            var studentResponse = await CourseService.AddCourseToStudent(studentRequest);
-            if (studentResponse.IsSuccessStatusCode)
+            isProcessing = true;
+            statusMessage = $"Enrolling {courseCode}...";
+
+            var courseRequest = new EnrollStudentRequest
             {
-                var courseResponse = await CourseService.EnrollStudent(courseRequest);
-                if (courseResponse.IsSuccessStatusCode)
-                {
-                    statusMessage = $"Successfully enrolled student in course {enrolledCourseCode}";
-                    courses = await CourseService.GetAllCourses();
-                    StateHasChanged();
-                }
-                else
-                {
-                    statusMessage = $"Failed to enroll student: {await courseResponse.Content.ReadAsStringAsync()}";
-                }
+                CourseId = courseId,
+                StudentId = userId,
+                CourseCode = courseCode
+            };
+
+            var courseResponse = await CourseService.EnrollStudent(courseRequest);
+            if (courseResponse.IsSuccessStatusCode)
+            {
+                statusMessage = $"Successfully enrolled student in course {courseCode}";
+                courses = await CourseService.GetAllCourses();
+                StateHasChanged();
             }
             else
             {
-                statusMessage = $"Failed to enroll student: {await studentResponse.Content.ReadAsStringAsync()}";
+                statusMessage = $"Failed to enroll student: {await courseResponse.Content.ReadAsStringAsync()}";
             }
         }
         catch (Exception ex)
@@ -253,12 +254,11 @@
 
     private async Task AddCourse()
     {
-        isProcessing = true;
-        statusMessage = $"Adding course {newCourse.Code}...";
-        newCourse.InstructorId = userId;
-
         try
         {
+            isProcessing = true;
+            statusMessage = $"Adding course {newCourse.Code}...";
+            newCourse.InstructorId = userId;
             var response = await CourseService.AddCourse(newCourse);
             if (response.IsSuccessStatusCode)
             {
