@@ -17,9 +17,13 @@ builder.Services.AddScoped<AccessTokenService>();
 builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.AddScoped<CookieService>();
 builder.Services.AddScoped<APIService>();
+
 builder.Services.AddHttpClient(MicroserviceNames.AuthenticationAPI.GetName(), client => client.BaseAddress = new Uri("https://localhost:7030/api/Authentication/"));
 builder.Services.AddHttpClient(MicroserviceNames.GradesAPI.GetName(), client => client.BaseAddress = new Uri("https://localhost:7095/"));
 builder.Services.AddHttpClient(MicroserviceNames.EnrollmentAPI.GetName(), client => client.BaseAddress = new Uri("https://localhost:7018/"));
+//builder.Services.AddHttpClient(MicroserviceNames.AuthenticationAPI.GetName(), client => client.BaseAddress = new Uri("http://192.168.1.14:8080/api/Authentication/"));
+//builder.Services.AddHttpClient(MicroserviceNames.GradesAPI.GetName(), client => client.BaseAddress = new Uri("http://192.168.1.16:8080/"));
+//builder.Services.AddHttpClient(MicroserviceNames.EnrollmentAPI.GetName(), client => client.BaseAddress = new Uri("http://192.168.1.15:8080/"));
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication()
