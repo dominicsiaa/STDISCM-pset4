@@ -20,6 +20,7 @@ POST {{Enrollment_HostAddress}}/courses/enroll
 Content-Type: application/json
 {
   "CourseId": 1,
-  "StudentId": 12100000
+  "StudentId": 1
+  "CourseCode": "STDISCM""
 }
 

@@ -6,7 +6,7 @@ namespace Enrollment.Services
     public interface ICourseService
     {
         IEnumerable<Course> GetAllCourses();
-        bool EnrollStudent(int courseId, int studentId);
+        bool EnrollStudent(int courseId, int studentId, string courseCode);
         bool AddCourse(Course course);
     }
     public class CourseService : ICourseService
@@ -22,9 +22,9 @@ namespace Enrollment.Services
             return _dataAccess.GetAllCourses();
         }
 
-        public bool EnrollStudent(int courseId, int studentId)
+        public bool EnrollStudent(int courseId, int studentId, string courseCode)
         {
-            return _dataAccess.EnrollStudent(courseId, studentId);
+            return _dataAccess.EnrollStudent(courseId, studentId, courseCode);
         }
 
         public bool AddCourse(Course course)

@@ -8,9 +8,9 @@ namespace Enrollment.Model
         [Key]
         public int Id { get; set; }
         [Required]
-        public string Code { get; set; } = string.Empty;
+        public string Code { get; set; }
         [Required]
-        public float Units { get; set; }
+        public int Units { get; set; }
         [Required]
         public int Capacity { get; set; }
         [Required]

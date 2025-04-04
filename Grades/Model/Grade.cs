@@ -14,6 +14,8 @@ namespace Grades.Model
         public int InstructorId { get; set; }
         [Required]
         public double Gpa { get; set; }
+        [Required]
+        public int Units { get; set; }
         public DateTime DateRecorded { get; set; } = DateTime.Now;
     }
 }
