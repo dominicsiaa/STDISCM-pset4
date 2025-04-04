@@ -4,7 +4,8 @@
     {
         AuthenticationAPI,
         GradesAPI,
-        EnrollmentAPI
+        EnrollmentAPI,
+        RateProfAPI
     }
 
     public static class MicroserviceNamesExtensions

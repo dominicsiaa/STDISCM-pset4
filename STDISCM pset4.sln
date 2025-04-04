@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Enrollment", "Enrollment\En
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grades", "Grades\Grades.csproj", "{4CC6F948-8076-E30E-27C6-62C8FF1B4F65}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RateProfs", "RateProfs\RateProfs.csproj", "{597AC9D6-EDED-4E85-8F5B-57ACE94E8B85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{4CC6F948-8076-E30E-27C6-62C8FF1B4F65}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CC6F948-8076-E30E-27C6-62C8FF1B4F65}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CC6F948-8076-E30E-27C6-62C8FF1B4F65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{597AC9D6-EDED-4E85-8F5B-57ACE94E8B85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{597AC9D6-EDED-4E85-8F5B-57ACE94E8B85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{597AC9D6-EDED-4E85-8F5B-57ACE94E8B85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{597AC9D6-EDED-4E85-8F5B-57ACE94E8B85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,6 +64,7 @@ Global
 		{209F5073-60F1-766D-38C7-2E1E0A347035} = {F63C5635-B087-4F1A-A629-75EBB4997AD2}
 		{655A96A5-0A17-45FF-BD04-C73B74D40B93} = {F63C5635-B087-4F1A-A629-75EBB4997AD2}
 		{4CC6F948-8076-E30E-27C6-62C8FF1B4F65} = {F63C5635-B087-4F1A-A629-75EBB4997AD2}
+		{597AC9D6-EDED-4E85-8F5B-57ACE94E8B85} = {F63C5635-B087-4F1A-A629-75EBB4997AD2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {212CBDA4-705D-4224-84C6-5419BD685B5D}

@@ -8,4 +8,6 @@ builder.AddProject<Projects.Enrollment>("enrollment");
 
 builder.AddProject<Projects.Grades>("grades");
 
+builder.AddProject<Projects.RateProfs>("rateprofs");
+
 builder.Build().Run();

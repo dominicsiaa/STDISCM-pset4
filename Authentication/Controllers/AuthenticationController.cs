@@ -16,6 +16,13 @@ namespace Authentication.Controllers
             this.tokenProvider = tokenProvider;
         }
 
+        [Authorize]
+        [HttpGet("users")]
+        public ActionResult<IEnumerable<User>> GetAllUsers()
+        {
+            return Ok(dataAccess.GetAllUsers());
+        }
+
         [HttpPost("signin")]
         public ActionResult SignIn(SignInRequest request)
         {
@@ -100,5 +107,6 @@ namespace Authentication.Controllers
 
             return Ok();
         }
+
     }
 }

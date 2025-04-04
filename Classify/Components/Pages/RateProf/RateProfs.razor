@@ -1,0 +1,117 @@
+﻿@page "/rate-prof"
+@rendermode InteractiveServer
+@inject RateProfService RateProfService
+@inject JWTStateProvider JWTStateProvider
+@inject ILogger<RateProf> _logger;
+@using Classify.Services
+@using Classify.Model
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
+<h4>Rate a Professor</h4>
+
+@if (!string.IsNullOrEmpty(statusMessage))
+{
+        <div class="alert alert-info" role="alert">@statusMessage</div>
+}
+
+@if (professors == null)
+{
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+}
+else
+{
+        <EditForm OnValidSubmit="HandleSubmit" Model="rating">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label">Select a Professor</label>
+                <InputSelect class="form-select" @bind-Value="selectedProfId">
+                    <option value="">-- Choose Professor --</option>
+                @foreach (var prof in professors)
+                {
+                            <option value="@prof.Id">@prof.Username</option>
+                }
+                </InputSelect>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Rating (1-5)</label>
+                <InputNumber class="form-control" @bind-Value="rating.Score" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Comment (optional)</label>
+                <InputTextArea class="form-control" @bind-Value="rating.Comment" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit Rating</button>
+        </EditForm>
+}
+
+@code {
+    private int userId;
+    private string username = "";
+    private List<User> professors = null;
+    private string statusMessage = "";
+
+    private int selectedProfId;
+    private RateProf rating = new();
+
+    private bool isInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isInitialized)
+        {
+            isInitialized = true;
+            await GetUserDetails(); // safe now — JS Interop ready
+            professors = await RateProfService.GetAllProfessors();
+            StateHasChanged(); // re-render now that data is ready
+        }
+    }
+
+    private async Task GetUserDetails()
+    {
+        var authState = await JWTStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userId = int.Parse(user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "0");
+            username = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? "";
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        var selectedProf = professors.FirstOrDefault(p => p.Id == selectedProfId);
+        if (selectedProf == null)
+        {
+            statusMessage = "Please select a professor.";
+            return;
+        }
+
+        rating.StudentId = userId;
+        rating.StudentUsername = username;
+        rating.InstructorId = selectedProf.Id;
+        rating.InstructorUsername = selectedProf.Username;
+        rating.CourseCode = "N/A";
+        rating.CourseTitle = "N/A";
+
+        var response = await RateProfService.SubmitRating(rating);
+        if (response.IsSuccessStatusCode)
+        {
+            statusMessage = $"Successfully submitted rating for {selectedProf.Username}.";
+            rating = new RateProf(); // Reset form
+            selectedProfId = 0;
+        }
+        else
+        {
+            statusMessage = "Failed to submit rating.";
+        }
+    }
+}

@@ -34,6 +34,12 @@ namespace Authentication.Infrastructure
             return _context.Users.FirstOrDefault(u => u.Username == username);
         }
 
+        public List<User> GetAllUsers()
+        {
+            return _context.Users.ToList(); // Assuming you're using EF
+        }
+
+
         public bool InsertRefreshToken(RefreshToken refreshToken, int userId)
         {
             if (_context.RefreshTokens.Any(rt => rt.Token == refreshToken.Token))
