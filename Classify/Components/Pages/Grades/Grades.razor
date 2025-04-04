@@ -28,9 +28,7 @@
     private async Task LoadDataAsync()
     {
         var userDetailsTask = GetUserDetails();
-        var coursesTask = CourseService.GetAllCourses();
-
-        await Task.WhenAll(userDetailsTask, coursesTask);
+        await userDetailsTask;
 
         if (isStudent)
         {
@@ -38,16 +36,12 @@
         }
         else
         {
-            grades = await GradesService.GetStudentGrades(userId);
-        }
+            var coursesTask = CourseService.GetAllCourses();
+            await Task.WhenAll(userDetailsTask, coursesTask);
 
-        var allCourses = await coursesTask;
-        if (isStudent)
-        {
-            courses = allCourses.Where(c => c.StudentIds.Contains(userId)).ToList();
-        }
-        else
-        {
+            grades = await GradesService.GetStudentGrades(userId);
+
+            var allCourses = await coursesTask;
             courses = allCourses.Where(c => c.InstructorId == userId).ToList();
         }
 
@@ -83,7 +77,7 @@
 
         foreach (var grade in grades)
         {
-            var course = courses.FirstOrDefault(c => c.Code == grade.CourseCode);
+            var course = courses?.FirstOrDefault(c => c.Code == grade.CourseCode);
             if (course != null)
             {
                 totalWeightedGpa += course.Units * grade.Gpa;
@@ -99,17 +93,18 @@
         return grades.Where(g => g.CourseCode == courseCode).ToList();
     }
 
-    private async Task SubmitGrade(int studentId, string courseCode)
+    private async Task SubmitGrade(int studentId, string courseCode, int units)
     {
         statusMessage = $"Grading student {studentId} in {courseCode}...";
 
-		Grade newGrade = new Grade
-			{
-				StudentId = studentId,
-				InstructorId = userId,
-				CourseCode = courseCode,
-				Gpa = double.Parse(newGPA)
-			};
+        Grade newGrade = new Grade
+            {
+                StudentId = studentId,
+                InstructorId = userId,
+                CourseCode = courseCode,
+                Units = units,
+                Gpa = double.Parse(newGPA)
+            };
 
         try
         {
@@ -117,8 +112,8 @@
             if (response.IsSuccessStatusCode)
             {
                 statusMessage = $"Grade {newGPA} submitted for student {studentId} in {courseCode}.";
-				newGPA = "0.0"; // Reset the new GPA after submission
-				await LoadDataAsync(); // Reload data to reflect changes
+                newGPA = "0.0"; // Reset the new GPA after submission
+                await LoadDataAsync(); // Reload data to reflect changes
             }
             else
             {
@@ -126,10 +121,10 @@
                 statusMessage = $"Error submitting grade: {errorMessage}";
             }
         }
-		catch (Exception ex)
-		{
-			statusMessage = $"Error submitting grade: {ex.Message}";
-		}
+        catch (Exception ex)
+        {
+            statusMessage = $"Error submitting grade: {ex.Message}";
+        }
     }
 }
 
@@ -141,7 +136,7 @@
         </div>
     }
 
-    @if (courses == null || grades == null)
+    @if (grades == null)
     {
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
@@ -154,15 +149,10 @@
             <thead>
                 <tr>
                     <th>Course Code</th>
-                    @if (!isStudent)
-                    {
-                        <th>Student ID</th>
-                    }
+                    @if (!isStudent) { <th>Student ID</th> }
+                    else { <th> Units </th>}
                     <th>Grade</th>
-                    @if (!isStudent)
-                    {
-                        <th>Action</th>
-                    }
+                    @if (!isStudent) { <th>Action</th> }
                 </tr>
             </thead>
             <tbody>
@@ -194,7 +184,7 @@
                                 <td>
                                     @if (grade == null)
                                     {
-                                        <EditForm Model="newGPA" OnValidSubmit="async () => await SubmitGrade(studentId, course.Code)">
+                                        <EditForm Model="newGPA" OnValidSubmit="async () => await SubmitGrade(studentId, course.Code, course.Units)">
                                             <div class="d-flex align-items-center">
                                                 <InputSelect @bind-Value="newGPA" 
                                                                 class="form-select form-select-sm me-2" 
@@ -223,17 +213,13 @@
                 }
                 else
                 {
-                    foreach (var course in courses)
+                    foreach (var grade in grades)
                     {
-                        var grade = GetGradesForCourse(course.Code)?.FirstOrDefault();
                         <tr>
-                            <td>@course.Code</td>
+                            <td>@grade.CourseCode</td>
+                            <td>@grade.Units</td>
                             <td>
-                                @if (grade == null)
-                                {
-                                    <span>NGS</span>
-                                }
-                                else if (grade.Gpa == 0.0)
+                                @if (grade.Gpa == 0.0)
                                 {
                                     <span style="color: red;">0.0</span>
                                 }

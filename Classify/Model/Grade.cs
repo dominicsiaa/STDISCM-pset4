@@ -9,6 +9,7 @@ namespace Classify.Model
         public int StudentId { get; set; }
         public int InstructorId { get; set; }
         public double Gpa { get; set; }
+        public int Units { get; set; }
         public DateTime DateRecorded { get; set; } = DateTime.Now;
     }
 }

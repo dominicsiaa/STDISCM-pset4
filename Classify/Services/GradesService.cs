@@ -56,5 +56,6 @@ namespace Classify.Services
         public int InstructorId { get; set; }
         [Range(0.0, 4.0, ErrorMessage = "Must be between 0.0 to 4.0")]
         public double Gpa { get; set; }
+        public int Units { get; set; }
     }
 }
