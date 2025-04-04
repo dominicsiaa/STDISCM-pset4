@@ -27,7 +27,7 @@ namespace RateProfs.Controllers
 
         [Authorize]
         [HttpPost("submit")]
-        public IActionResult SubmitRating(RateProf rating)
+        public ActionResult SubmitRating(RateProf rating)
         {
             _service.SubmitRating(rating);
             return Ok();
