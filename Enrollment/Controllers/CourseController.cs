@@ -22,7 +22,6 @@ namespace Enrollment.Controllers
         [HttpGet]
         public IEnumerable<Course> Get()
         {
-            _logger.LogInformation("Get Method Called");
             return _courseService.GetAllCourses();
         }
 

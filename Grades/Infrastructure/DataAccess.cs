@@ -11,19 +11,19 @@ namespace Grades.Infrastructure
             _context = context;
             _context.Database.EnsureCreated(); 
         }
-
         public void Dispose() => _context.Dispose();
-
         public List<Grade> GetGrades()
         {
             return _context.Grades.ToList();
         }
-
-        public Grade? GetGradeById(int id)
+        public List<Grade> GetStudentGrades(int instructorId)
         {
-            return _context.Grades.FirstOrDefault(g => g.Id == id);
+            return _context.Grades.Where(g => g.InstructorId == instructorId).ToList();
         }
-
+        public List<Grade> GetGradesOfStudent(int studentId)
+        {
+            return _context.Grades.Where(g => g.StudentId == studentId).ToList();
+        }
         public bool InsertGrade(Grade grade)
         {
             // Students can only have one grade per course

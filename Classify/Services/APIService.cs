@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
-using Grpc.Core;
 using Microsoft.AspNetCore.Components;
 
 namespace Classify.Services
@@ -12,7 +11,6 @@ namespace Classify.Services
         private readonly NavigationManager _nav;
         private readonly AuthenticationService _authenticationService;
         private readonly AccessTokenService _accessTokenService;
-
         public APIService(IHttpClientFactory httpFactory, ILogger<APIService> logger, NavigationManager nav, AuthenticationService authenticationService, AccessTokenService accessTokenService)
         {
             _httpFactory = httpFactory;
@@ -28,7 +26,6 @@ namespace Classify.Services
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             return client;
         }
-
         public async Task<HttpResponseMessage> GetAsync(string clientName, string url)
         {
             var client = await CreateClientAsync(clientName);
@@ -55,7 +52,6 @@ namespace Classify.Services
 
             return response;
         }
-
         public async Task<HttpResponseMessage> PostAsync(string clientName, string url, object data)
         {
             var client = await CreateClientAsync(clientName);

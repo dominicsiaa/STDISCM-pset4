@@ -28,7 +28,7 @@ builder.Services.AddScoped<JWTStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, JWTStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
 
-builder.Services.AddScoped<GradesService>();
+builder.Services.AddScoped<GradeService>();
 builder.Services.AddScoped<CourseService>();
 
 var app = builder.Build();

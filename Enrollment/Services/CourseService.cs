@@ -12,7 +12,6 @@ namespace Enrollment.Services
     public class CourseService : ICourseService
     {
         private readonly DataAccess _dataAccess;
-
         public CourseService(DataAccess dataAccess)
         {
             _dataAccess = dataAccess;
@@ -21,12 +20,10 @@ namespace Enrollment.Services
         {
             return _dataAccess.GetAllCourses();
         }
-
         public bool EnrollStudent(int courseId, int studentId, string courseCode)
         {
             return _dataAccess.EnrollStudent(courseId, studentId, courseCode);
         }
-
         public bool AddCourse(Course course)
         {
             return _dataAccess.AddCourse(course);

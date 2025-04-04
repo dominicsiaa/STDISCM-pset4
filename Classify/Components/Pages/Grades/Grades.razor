@@ -1,6 +1,6 @@
 ﻿@page "/grades"
 @attribute [Authorize]
-@inject GradesService GradesService
+@inject GradeService GradeService
 @inject CourseService CourseService
 @inject JWTStateProvider JWTStateProvider
 @rendermode InteractiveServer
@@ -32,14 +32,14 @@
 
         if (isStudent)
         {
-            grades = await GradesService.GetGradesOfStudent(userId);
+            grades = await GradeService.GetGradesOfStudent(userId);
         }
         else
         {
             var coursesTask = CourseService.GetAllCourses();
             await Task.WhenAll(userDetailsTask, coursesTask);
 
-            grades = await GradesService.GetStudentGrades(userId);
+            grades = await GradeService.GetStudentGrades(userId);
 
             var allCourses = await coursesTask;
             courses = allCourses.Where(c => c.InstructorId == userId).ToList();
@@ -77,12 +77,8 @@
 
         foreach (var grade in grades)
         {
-            var course = courses?.FirstOrDefault(c => c.Code == grade.CourseCode);
-            if (course != null)
-            {
-                totalWeightedGpa += course.Units * grade.Gpa;
-                totalUnits += course.Units;
-            }
+            totalWeightedGpa += grade.Units * grade.Gpa;
+            totalUnits += grade.Units;
         }
 
         return totalUnits > 0 ? totalWeightedGpa / totalUnits : 0.0;
@@ -108,7 +104,7 @@
 
         try
         {
-            var response = await GradesService.AddGrade(newGrade);
+            var response = await GradeService.AddGrade(newGrade);
             if (response.IsSuccessStatusCode)
             {
                 statusMessage = $"Grade {newGPA} submitted for student {studentId} in {courseCode}.";

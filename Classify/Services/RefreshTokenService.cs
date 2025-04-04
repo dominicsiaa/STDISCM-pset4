@@ -9,12 +9,10 @@ namespace Classify.Services
         {
             _protectedLocalStorage = protectedLocalStorage;
         }
-
         public async Task SetToken(string token)
         {
             await _protectedLocalStorage.SetAsync("refresh_token", token);
         }
-
         public async Task<string> GetToken()
         {
             var result = await _protectedLocalStorage.GetAsync<string>("refresh_token");
@@ -25,7 +23,6 @@ namespace Classify.Services
 
             return string.Empty;
         }
-
         public async Task RemoveToken()
         {
             await _protectedLocalStorage.DeleteAsync("refresh_token");

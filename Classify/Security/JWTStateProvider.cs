@@ -8,12 +8,10 @@ namespace Classify.Security
     public class JWTStateProvider : AuthenticationStateProvider
     {
         private readonly AccessTokenService _accessTokenService;
-
         public JWTStateProvider(AccessTokenService accessTokenService)
         {
             _accessTokenService = accessTokenService;
         }
-
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             try
@@ -35,7 +33,6 @@ namespace Classify.Security
                 return await MarkAsUnauthorized();
             }
         }
-
         private async Task<AuthenticationState> MarkAsUnauthorized()
         {
             try

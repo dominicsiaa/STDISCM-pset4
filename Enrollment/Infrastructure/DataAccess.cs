@@ -11,6 +11,10 @@ namespace Enrollment.Infrastructure
             _context.Database.EnsureCreated();
         }
         public void Dispose() => _context.Dispose();
+        public IEnumerable<Course> GetAllCourses()
+        {
+            return _context.Courses.ToList();
+        }
         public bool EnrollStudent(int courseId, int studentId, string courseCode)
         {
             // To check if course exists and if student is already enrolled in the course
@@ -26,12 +30,6 @@ namespace Enrollment.Infrastructure
             if (isEnrollmentSuccessful) _context.SaveChanges();
             return isEnrollmentSuccessful;
         }
-
-        public IEnumerable<Course> GetAllCourses()
-        {
-            return _context.Courses.ToList();
-        }
-
         public bool AddCourse(Course course)
         {
             // Instructors can only have one course at a time

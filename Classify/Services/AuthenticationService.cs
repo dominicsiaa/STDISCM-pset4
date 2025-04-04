@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Newtonsoft.Json;
 using Classify.Model;
-using System.Net.Http;
-using System.Net.Http.Json;
-using Microsoft.Extensions.Logging;
 using Classify.Common;
 
 namespace Classify.Services
@@ -15,7 +12,6 @@ namespace Classify.Services
         private readonly NavigationManager _nav;
         private readonly HttpClient _client;
         private readonly ILogger<AuthenticationService> _logger;
-
         public AuthenticationService(AccessTokenService accessTokenService,
                                      NavigationManager nav,
                                      IHttpClientFactory client,
@@ -28,7 +24,6 @@ namespace Classify.Services
             _logger = logger;
             _refreshTokenService = refreshTokenService;
         }
-
         public async Task<bool> SignUp(string username, string password, string role)
         {
             _logger.LogInformation($"Attempting to sign up user: {username} with role: {role}");
@@ -63,8 +58,6 @@ namespace Classify.Services
                 return false;
             }
         }
-
-
         public async Task<bool> Login(string username, string password)
         {
             _logger.LogInformation($"Attempting to log in user: {username}");
@@ -102,7 +95,6 @@ namespace Classify.Services
                 return false;
             }
         }
-
         public async Task<bool> RefreshTokenAsync()
         {
             var refreshToken = await _refreshTokenService.GetToken();
@@ -128,7 +120,6 @@ namespace Classify.Services
                 return false;
             }
         }
-
         public async Task Logout()
         {
             _logger.LogInformation("Logging out user.");
