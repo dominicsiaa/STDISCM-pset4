@@ -151,8 +151,7 @@ else
         }
         catch (Exception ex)
         {
-            statusMessage = $"Failed to enroll student: {ex.Message}";
-        }
+			statusMessage = "Service is currently unavailable. Please try again later.";        }
         finally
         {
             isProcessing = false;
@@ -181,7 +180,7 @@ else
         }
         catch (Exception ex)
         {
-            statusMessage = $"Failed to add course: {ex.Message}";
+			statusMessage = "Service is currently unavailable. Please try again later.";
         }
         finally
         {
