@@ -97,14 +97,14 @@ else
     }
 
     <h4>Rate a Professor</h4>
-        <EditForm  EditContext="editContext" OnValidSubmit="HandleSubmit" >
+        <EditForm  EditContext="editContext" OnValidSubmit="HandleSubmit" @key="editFormKey" >
         <DataAnnotationsValidator />
         <ValidationSummary />
 
         <div class="mb-3">
             <label class="form-label">Select a Professor</label>
                 <InputSelect class="form-select" @bind-Value="formModel.SelectedProfId">
-                     <option value="">-- Choose Professor --</option>
+                         <option value="0">-- Choose Professor --</option>
                          @foreach (var prof in professors)
                             {
                                 <option value="@prof.Id">@prof.Username</option>
@@ -124,19 +124,20 @@ else
                 <InputTextArea class="form-control" @bind-Value="formModel.Rating.Comment" />
                 <ValidationMessage For="@(() => formModel.Rating.Comment)" />
         </div>
-
-        @if (!HasAlreadyRated(formModel.SelectedProfId ?? -1))
+        @if (formModel.SelectedProfId > 0)
         {
-        <button type="submit" class="btn btn-primary" disabled="@( !editContext.Validate() )">
-            Submit Rating
-        </button>
-
-        }
-        else
-        {
-            <div class="alert alert-warning mt-3">
-                You have already rated this professor.
-            </div>
+            if (!HasAlreadyRated(formModel.SelectedProfId))
+            {
+                    <button type="submit" class="btn btn-primary" disabled="@( !editContext.Validate() )">
+                        Submit Rating
+                    </button>
+            }
+            else
+            {
+                    <div class="alert alert-warning mt-3">
+                        You have already rated this professor.
+                    </div>
+            }
         }
 
     </EditForm>
@@ -150,7 +151,7 @@ else
     public class RateProfWrapper
     {
         [Required(ErrorMessage = "Please select a professor.")]
-        public int? SelectedProfId { get; set; }
+        public int SelectedProfId { get; set; }
 
         public RateProf Rating { get; set; } = new();
     }
@@ -165,6 +166,7 @@ else
     private bool isRateProfServiceDown = false;
     private Dictionary<int, List<RateProf>> profRatingsMap = new();
     private EditContext editContext;
+    private string editFormKey = Guid.NewGuid().ToString();
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -220,8 +222,16 @@ else
             if (response.IsSuccessStatusCode)
             {
                 statusMessage = $"Successfully submitted rating for {selectedProf.Username}.";
-                formModel = new RateProfWrapper(); // reset
+
+                formModel = new RateProfWrapper
+                    {
+                        SelectedProfId = 0,
+                        Rating = new RateProf { Score = 1 }
+                    };
                 editContext = new EditContext(formModel);
+                editContext.MarkAsUnmodified();
+
+
 
                 myRatings = await RateProfService.GetMyRatings(user.Id);
                 profRatingsMap[selectedProf.Id] = await RateProfService.GetRatingsByProfessor(selectedProf.Id);
@@ -259,7 +269,7 @@ else
     {
         formModel = new RateProfWrapper
             {
-                SelectedProfId = null,
+                SelectedProfId = 0,
                 Rating = new RateProf { Score = 1 }
             };
 
