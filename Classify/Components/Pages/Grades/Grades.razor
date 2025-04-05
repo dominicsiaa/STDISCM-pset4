@@ -79,6 +79,7 @@ else
                                 @if (grade == null)
                                 {
                                     <EditForm Model="newGPA" OnValidSubmit="async () => await SubmitGrade(studentId, course.Code, course.Units)">
+										<DataAnnotationsValidator />
                                         <div class="d-flex align-items-center">
                                             <InputSelect @bind-Value="newGPA"
                                                          class="form-select form-select-sm me-2"
