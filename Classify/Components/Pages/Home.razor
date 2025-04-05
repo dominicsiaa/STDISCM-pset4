@@ -9,35 +9,67 @@
 <PageTitle>Home</PageTitle>
 
 <div class="mt-4">
-	<div class="row justify-content-center">
-		<div class="col-md-6">
-			<div class="card">
-				<div class="card-header">
-					<h2 class="mb-0">Welcome, @Username!</h2>
-				</div>
-				<div class="card-body">
-					<p class="card-text"><strong>ID:</strong> @Id</p>
-					<p class="card-text"><strong>Role:</strong> @Role</p>
-				</div>
-			</div>
-		</div>
-	</div>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">Welcome, @Username!</h2>
+                </div>
+                <div class="card-body">
+                    <p class="card-text"><strong>ID:</strong> @Id</p>
+                    <p class="card-text"><strong>Role:</strong> @Role</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-@code {
-	public string Username { get; set; } = string.Empty;
-	public string Role { get; set; } = string.Empty;
-	public string Id { get; set; } = string.Empty;
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @ErrorMessage
+    </div>
+    <button class="btn btn-primary" @onclick="RetryLoadData">Retry</button>
+}
 
-	protected override async Task OnInitializedAsync()
-	{
-		var response = await JWTStateProvider.GetAuthenticationStateAsync();
-		var user = response.User;
-		if (user.Identity.IsAuthenticated)
+@code {
+    public string Username { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public string Id { get; set; } = string.Empty;
+    public string ErrorMessage { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserDataAsync();
+    }
+
+    private async Task LoadUserDataAsync()
+    {
+        try
+        {
+            var response = await JWTStateProvider.GetAuthenticationStateAsync();
+            var user = response.User;
+            if (user.Identity.IsAuthenticated)
+            {
+                Username = user.Identity.Name;
+                Role = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+                Id = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                ErrorMessage = string.Empty; // Clear any previous error message
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"An error occurred while loading user data: {ex.Message}";
+        }
+		finally
 		{
-			Username = user.Identity.Name;
-			Role = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-			Id = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+			StateHasChanged();
 		}
-	}
+    }
+
+    private async Task RetryLoadData()
+    {
+        ErrorMessage = string.Empty; // Clear the error message before retrying
+        await LoadUserDataAsync();
+    }
 }

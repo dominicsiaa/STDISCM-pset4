@@ -16,6 +16,8 @@
     private bool isStudent = true;
     private string newGPA = "0.0";
     private string statusMessage = "";
+    private bool isGradesServiceDown = true;
+    private bool isLoading = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -27,22 +29,35 @@
 
     private async Task LoadDataAsync()
     {
-        var userDetailsTask = GetUserDetails();
-        await userDetailsTask;
-
-        if (isStudent)
+        try
         {
-            grades = await GradeService.GetGradesOfStudent(userId);
+            var userDetailsTask = GetUserDetails();
+            await userDetailsTask;
+
+            if (isStudent)
+            {
+                grades = await GradeService.GetGradesOfStudent(userId);
+            }
+            else
+            {
+                var coursesTask = CourseService.GetAllCourses();
+                await Task.WhenAll(userDetailsTask, coursesTask);
+
+                grades = await GradeService.GetStudentGrades(userId);
+
+                var allCourses = await coursesTask;
+                courses = allCourses.Where(c => c.InstructorId == userId).ToList();
+            }
+
+            isGradesServiceDown = false;
         }
-        else
+        catch
         {
-            var coursesTask = CourseService.GetAllCourses();
-            await Task.WhenAll(userDetailsTask, coursesTask);
-
-            grades = await GradeService.GetStudentGrades(userId);
-
-            var allCourses = await coursesTask;
-            courses = allCourses.Where(c => c.InstructorId == userId).ToList();
+            isGradesServiceDown = true;
+        }
+        finally
+        {
+            isLoading = false;
         }
 
         StateHasChanged();
@@ -91,19 +106,19 @@
 
     private async Task SubmitGrade(int studentId, string courseCode, int units)
     {
-        statusMessage = $"Grading student {studentId} in {courseCode}...";
-
-        Grade newGrade = new Grade
-            {
-                StudentId = studentId,
-                InstructorId = userId,
-                CourseCode = courseCode,
-                Units = units,
-                Gpa = double.Parse(newGPA)
-            };
-
         try
         {
+            statusMessage = $"Grading student {studentId} in {courseCode}...";
+
+            Grade newGrade = new Grade
+                {
+                    StudentId = studentId,
+                    InstructorId = userId,
+                    CourseCode = courseCode,
+                    Units = units,
+                    Gpa = double.Parse(newGPA)
+                };
+
             var response = await GradeService.AddGrade(newGrade);
             if (response.IsSuccessStatusCode)
             {
@@ -119,8 +134,14 @@
         }
         catch (Exception ex)
         {
-            statusMessage = $"Error submitting grade: {ex.Message}";
+            statusMessage = $"Server may be unavailable. Please try again later.";
         }
+    }
+
+    private async Task RefreshDataAsync()
+    {
+        isLoading = true;
+        await LoadDataAsync();
     }
 }
 
@@ -132,12 +153,19 @@
         </div>
     }
 
-    @if (grades == null)
+    @if (isLoading)
     {
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
     }
+	else if (isGradesServiceDown)
+	{
+		<div class="alert alert-danger" role="alert">
+			Service is currently unavailable. Please try again later.
+		</div>
+        <button class="btn btn-primary" @onclick="RefreshDataAsync">Try Again</button>
+	}
     else
     {
         <h4>My Courses</h4>
