@@ -34,11 +34,6 @@
                             <div class="alert alert-danger">@errorMessage</div>
                         }
 
-                        @if (isServiceDown)
-                        {
-                            <div class="alert alert-warning">The service is currently down. Please try again later.</div>
-                        }
-
                         <EditForm Model="signupModel" OnValidSubmit="HandleSignup">
                             <DataAnnotationsValidator />
 
@@ -80,13 +75,11 @@
     private SignupModel signupModel = new();
     private string? errorMessage;
     private bool isLoading = false;
-    private bool isServiceDown = false;
 
     private async Task HandleSignup()
     {
         isLoading = true;
         errorMessage = null;
-        isServiceDown = false;
 
         try
         {
@@ -107,7 +100,6 @@
         catch
         {
             errorMessage = "Service is currently unavailable. Please try again later.";
-            isServiceDown = true;
         }
         finally
         {

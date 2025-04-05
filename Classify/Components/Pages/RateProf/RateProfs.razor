@@ -98,7 +98,7 @@ else
     }
 
     <h4>Rate a Professor</h4>
-        <EditForm  EditContext="editContext" OnValidSubmit="HandleSubmit" @key="editFormKey" >
+        <EditForm  EditContext="editContext" OnValidSubmit="HandleSubmit" OnInvalidSubmit="HandleInvalid" @key="editFormKey" >
         <DataAnnotationsValidator />
         <ValidationSummary />
 
@@ -122,14 +122,14 @@ else
 
         <div class="mb-3">
             <label class="form-label">Comment (optional)</label>
-                <InputTextArea class="form-control" @bind-Value="formModel.Rating.Comment" />
+                <InputTextArea class="form-control" @bind-Value="formModel.Rating.Comment" style="resize: none;" />
                 <ValidationMessage For="@(() => formModel.Rating.Comment)" />
         </div>
         @if (formModel.SelectedProfId > 0)
         {
             if (!HasAlreadyRated(formModel.SelectedProfId))
             {
-                    <button type="submit" class="btn btn-primary" disabled="@( !editContext.Validate() )">
+                    <button type="submit" class="btn btn-primary">
                         Submit Rating
                     </button>
             }
@@ -253,6 +253,10 @@ else
         }
     }
 
+    private void HandleInvalid()
+    {
+        statusMessage = "Please correct the validation errors.";
+    }
 
     private bool HasAlreadyRated(int profId)
     {
