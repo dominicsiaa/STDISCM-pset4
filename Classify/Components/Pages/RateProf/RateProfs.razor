@@ -8,14 +8,14 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 
-<h4>Rate a Professor</h4>
+
 
 @if (!string.IsNullOrEmpty(statusMessage))
 {
         <div class="alert alert-info" role="alert">@statusMessage</div>
 }
 
-@if (professors == null)
+@if (professors == null || myRatings == null)
 {
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
@@ -23,6 +23,35 @@
 }
 else
 {
+    @if (myRatings.Count > 0)
+    {
+                <div class="mb-4">
+                    <h4>My Rating History</h4>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Professor</th>
+                                <th>Score</th>
+                                <th>Comment</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    @foreach (var r in myRatings)
+                    {
+                                    <tr>
+                                        <td>@r.InstructorUsername</td>
+                                        <td>@r.Score</td>
+                                        <td>@r.Comment</td>
+                                        <td>@r.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                                    </tr>
+                    }
+                        </tbody>
+                    </table>
+                </div>
+    }
+
+        <h4>Rate a Professor</h4>
         <EditForm OnValidSubmit="HandleSubmit" Model="rating">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -39,7 +68,7 @@ else
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Rating (1-5)</label>
+                <label class="form-label">Rating (1–5)</label>
                 <InputNumber class="form-control" @bind-Value="rating.Score" />
             </div>
 
@@ -56,6 +85,7 @@ else
     private int userId;
     private string username = "";
     private List<User> professors = null;
+    private List<RateProf> myRatings = new();
     private string statusMessage = "";
 
     private int selectedProfId;
@@ -68,9 +98,10 @@ else
         if (firstRender && !isInitialized)
         {
             isInitialized = true;
-            await GetUserDetails(); // safe now — JS Interop ready
+            await GetUserDetails();
             professors = await RateProfService.GetAllProfessors();
-            StateHasChanged(); // re-render now that data is ready
+            myRatings = await RateProfService.GetMyRatings(userId);
+            StateHasChanged();
         }
     }
 
@@ -108,6 +139,7 @@ else
             statusMessage = $"Successfully submitted rating for {selectedProf.Username}.";
             rating = new RateProf(); // Reset form
             selectedProfId = 0;
+            myRatings = await RateProfService.GetMyRatings(userId); // Refresh rating history
         }
         else
         {
