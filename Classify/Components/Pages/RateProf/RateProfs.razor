@@ -1,81 +1,86 @@
 ﻿@page "/rate-prof"
 @rendermode InteractiveServer
 @inject RateProfService RateProfService
-@inject JWTStateProvider JWTStateProvider
+@inject UserService UserService
 @inject ILogger<RateProf> _logger;
 @using Classify.Services
 @using Classify.Model
-@using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims
 
-
+<PageTitle>Rate an Instructor</PageTitle>
 
 @if (!string.IsNullOrEmpty(statusMessage))
 {
-        <div class="alert alert-info" role="alert">@statusMessage</div>
+    <div class="alert alert-info" role="alert">@statusMessage</div>
 }
 
-@if (professors == null || myRatings == null)
+@if (isLoading)
 {
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else if (isRateProfServiceDown)
+{
+	<div class="alert alert-danger" role="alert">
+		Service is currently unavailable. Please try again later.
+	</div>
+	<button class="btn btn-primary" @onclick="RefreshDataAsync">Try Again</button>
 }
 else
 {
     @if (myRatings.Count > 0)
     {
-                <div class="mb-4">
-                    <h4>My Rating History</h4>
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Professor</th>
-                                <th>Score</th>
-                                <th>Comment</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+        <div class="mb-4">
+            <h4>My Rating History</h4>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Professor</th>
+                        <th>Score</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
                     @foreach (var r in myRatings)
                     {
-                                    <tr>
-                                        <td>@r.InstructorUsername</td>
-                                        <td>@r.Score</td>
-                                        <td>@r.Comment</td>
-                                        <td>@r.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
-                                    </tr>
+                        <tr>
+                            <td>@r.InstructorUsername</td>
+                            <td>@r.Score</td>
+                            <td>@r.Comment</td>
+                            <td>@r.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                        </tr>
                     }
-                        </tbody>
-                    </table>
-                </div>
+                </tbody>
+            </table>
+        </div>
     }
 
-        <h4>Rate a Professor</h4>
-        <EditForm OnValidSubmit="HandleSubmit" Model="rating">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+    <h4>Rate a Professor</h4>
+    <EditForm OnValidSubmit="HandleSubmit" Model="rating">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-            <div class="mb-3">
-                <label class="form-label">Select a Professor</label>
-                <InputSelect class="form-select" @bind-Value="selectedProfId">
-                    <option value="">-- Choose Professor --</option>
+        <div class="mb-3">
+            <label class="form-label">Select a Professor</label>
+            <InputSelect class="form-select" @bind-Value="selectedProfId">
+                <option value="">-- Choose Professor --</option>
                 @foreach (var prof in professors)
                 {
-                            <option value="@prof.Id">@prof.Username</option>
+                    <option value="@prof.Id">@prof.Username</option>
                 }
-                </InputSelect>
-            </div>
+            </InputSelect>
+        </div>
 
-            <div class="mb-3">
-                <label class="form-label">Rating (1–5)</label>
-                <InputNumber class="form-control" @bind-Value="rating.Score" />
-            </div>
+        <div class="mb-3">
+            <label class="form-label">Rating (1–5)</label>
+            <InputNumber class="form-control" @bind-Value="rating.Score" />
+        </div>
 
-            <div class="mb-3">
-                <label class="form-label">Comment (optional)</label>
-                <InputTextArea class="form-control" @bind-Value="rating.Comment" />
-            </div>
+        <div class="mb-3">
+            <label class="form-label">Comment (optional)</label>
+            <InputTextArea class="form-control" @bind-Value="rating.Comment" />
+        </div>
 
         @if (!HasAlreadyRated(selectedProfId))
         {
@@ -88,78 +93,99 @@ else
             </div>
         }
 
-        </EditForm>
+    </EditForm>
 }
 
 @code {
-    private int userId;
-    private string username = "";
+    private User user = null;
     private List<User> professors = null;
     private List<RateProf> myRatings = new();
-    private string statusMessage = "";
 
+    private string statusMessage = "";
     private int selectedProfId;
     private RateProf rating = new();
 
-    private bool isInitialized = false;
+    private bool isLoading = true;
+    private bool isRateProfServiceDown = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !isInitialized)
+        if (firstRender)
         {
-            isInitialized = true;
-            await GetUserDetails();
-            professors = await RateProfService.GetAllProfessors();
-            myRatings = await RateProfService.GetMyRatings(userId);
-            StateHasChanged();
+            await LoadDataAsync();
         }
     }
 
-    private async Task GetUserDetails()
+    private async Task LoadDataAsync()
     {
-        var authState = await JWTStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity?.IsAuthenticated == true)
+        try
         {
-            userId = int.Parse(user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "0");
-            username = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? "";
+            user = await UserService.GetUserAsync();
+            professors = await RateProfService.GetAllProfessors();
+            myRatings = await RateProfService.GetMyRatings(user.Id);
         }
-    }
+        catch (Exception ex)
+        {
+            isRateProfServiceDown = true;
+        }
+		finally
+		{
+			isLoading = false;
+			StateHasChanged();
+		}
+	}
 
     private async Task HandleSubmit()
     {
-        var selectedProf = professors.FirstOrDefault(p => p.Id == selectedProfId);
-        if (selectedProf == null)
+        try
         {
-            statusMessage = "Please select a professor.";
-            return;
-        }
+			statusMessage = $"Submitting rating...";
 
-        rating.StudentId = userId;
-        rating.StudentUsername = username;
-        rating.InstructorId = selectedProf.Id;
-        rating.InstructorUsername = selectedProf.Username;
-        rating.CourseCode = "N/A";
-        rating.CourseTitle = "N/A";
+            var selectedProf = professors.FirstOrDefault(p => p.Id == selectedProfId);
+            if (selectedProf == null)
+            {
+                statusMessage = "Please select a professor.";
+                return;
+            }
 
-        var response = await RateProfService.SubmitRating(rating);
-        if (response.IsSuccessStatusCode)
-        {
-            statusMessage = $"Successfully submitted rating for {selectedProf.Username}.";
-            rating = new RateProf(); // Reset form
-            selectedProfId = 0;
-            myRatings = await RateProfService.GetMyRatings(userId); // Refresh rating history
+            rating.StudentId = user.Id;
+            rating.StudentUsername = user.Username;
+            rating.InstructorId = selectedProf.Id;
+            rating.InstructorUsername = selectedProf.Username;
+            rating.CourseCode = "N/A";
+            rating.CourseTitle = "N/A";
+
+            var response = await RateProfService.SubmitRating(rating);
+            if (response.IsSuccessStatusCode)
+            {
+                statusMessage = $"Successfully submitted rating for {selectedProf.Username}.";
+                rating = new RateProf(); // Reset form
+                selectedProfId = 0;
+                myRatings = await RateProfService.GetMyRatings(user.Id); // Refresh rating history
+            }
+            else
+            {
+                statusMessage = "Failed to submit rating.";
+            }
         }
-        else
-        {
-            statusMessage = "Failed to submit rating.";
-        }
+		catch
+		{
+			statusMessage = "Service is currently unavailable. Please try again later.";
+		}
+        finally
+		{
+			StateHasChanged();
+		}
     }
-
 
     private bool HasAlreadyRated(int profId)
     {
         return myRatings.Any(r => r.InstructorId == profId);
     }
+
+	private async Task RefreshDataAsync()
+	{
+		isLoading = true;
+		await LoadDataAsync();
+	}
 }

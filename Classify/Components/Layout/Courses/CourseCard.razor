@@ -1,0 +1,44 @@
+﻿@using Classify.Model
+
+<div class="col-md-4 mb-3">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">@Course.Code</h5>
+            <h6 class="card-subtitle">Instructor ID: @Course.InstructorId</h6>
+            <p class="card-text">
+                Units: @Course.Units
+            </p>
+            <p class="card-text fw-bold">
+                Students: @Course.StudentIds.Count/@Course.Capacity
+            </p>
+            @if (ShowEnrollButton && Course.StudentIds.Count < Course.Capacity && !Course.isEnrolled(UserId))
+            {
+                <button class="btn btn-primary" @onclick="EnrollStudent" disabled="@IsProcessing">
+                    @if (IsProcessing)
+                    {
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span>Enrolling...</span>
+                    }
+                    else
+                    {
+                        <span>Enroll</span>
+                    }
+                </button>
+            }
+            @if (Course.isEnrolled(UserId))
+            {
+                <button class="btn btn-success" disabled>
+                    <span>Enrolled</span>
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Course Course { get; set; } = new Course();
+    [Parameter] public int UserId { get; set; }
+    [Parameter] public bool ShowEnrollButton { get; set; } = false;
+    [Parameter] public EventCallback EnrollStudent { get; set; }
+    [Parameter] public bool IsProcessing { get; set; }
+}

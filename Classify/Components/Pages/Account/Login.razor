@@ -56,19 +56,26 @@
 
     private async Task HandleLogin()
     {
-        Logger.LogInformation($"Attempting to log in as: {loginModel.Username}");
-
-        var response = await authenticationService.Login(loginModel.Username, loginModel.Password);
-        if (response)
-        {
-            Logger.LogInformation("Login successful, navigating to home.");
-            navigationManager.NavigateTo("/");
-        }
-        else
-        {
-            Logger.LogWarning("Login failed, incorrect credentials.");
-            errorMessage = "Invalid username or password. Please try again.";
-        }
+        try
+		{
+            Logger.LogInformation($"Attempting to log in as: {loginModel.Username}");
+            var response = await authenticationService.Login(loginModel.Username, loginModel.Password);
+            if (response)
+            {
+                Logger.LogInformation("Login successful, navigating to home.");
+                navigationManager.NavigateTo("/");
+            }
+            else
+            {
+                Logger.LogWarning("Login failed, incorrect credentials.");
+                errorMessage = "Invalid username or password. Please try again.";
+            }
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "An error occurred during login.");
+			errorMessage = "An unexpected error occurred. Please try again later.";
+		}
     }
 
     public class LoginModel

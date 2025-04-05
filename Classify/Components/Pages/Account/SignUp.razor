@@ -65,19 +65,27 @@
 
     private async Task HandleSignup()
     {
-        Logger.LogInformation($"Signing up as: {signupModel.Username}, Role: {signupModel.Role}");
+        try
+        {
+            Logger.LogInformation($"Signing up as: {signupModel.Username}, Role: {signupModel.Role}");
 
-        var response = await authenticationService.SignUp(signupModel.Username, signupModel.Password, signupModel.Role.ToString());
-        if (response)
-        {
-            Logger.LogInformation("Signup successful, navigating to login.");
-            navigationManager.NavigateTo("/login");
+            var response = await authenticationService.SignUp(signupModel.Username, signupModel.Password, signupModel.Role.ToString());
+            if (response)
+            {
+                Logger.LogInformation("Signup successful, navigating to login.");
+                navigationManager.NavigateTo("/login");
+            }
+            else
+            {
+                Logger.LogWarning("Signup failed.");
+                errorMessage = "Signup failed. Please try again.";
+            }
         }
-        else
-        {
-            Logger.LogWarning("Signup failed.");
-            errorMessage = "Signup failed. Please try again.";
-        }
+        catch
+		{
+			Logger.LogError("An error occurred during signup.");
+			errorMessage = "An unexpected error occurred. Please try again later.";
+		}
     }
 
     public class SignupModel

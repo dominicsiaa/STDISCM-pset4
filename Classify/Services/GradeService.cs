@@ -13,34 +13,59 @@ namespace Classify.Services
         }
         public async Task<List<Grade>> GetStudentGrades(int instructorId)
         {
-            var response = await _apiService.GetAsync(MicroserviceNames.GradesAPI.GetName(), $"grades/instructor?instructorId={instructorId}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var grades = JsonConvert.DeserializeObject<List<Grade>>(await response.Content.ReadAsStringAsync());
-                return grades;
+                var response = await _apiService.GetAsync(MicroserviceNames.GradesAPI.GetName(), $"grades/instructor?instructorId={instructorId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var grades = JsonConvert.DeserializeObject<List<Grade>>(await response.Content.ReadAsStringAsync());
+                    return grades;
+                }
+                else
+                {
+                    return new List<Grade>();
+                }
             }
-            else
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error fetching grades: {ex.Message}");
                 return new List<Grade>();
             }
         }
         public async Task<List<Grade>> GetGradesOfStudent(int studentId)
         {
-            var response = await _apiService.GetAsync(MicroserviceNames.GradesAPI.GetName(), $"grades/student?studentId={studentId}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var grades = JsonConvert.DeserializeObject<List<Grade>>(await response.Content.ReadAsStringAsync());
-                return grades;
+                var response = await _apiService.GetAsync(MicroserviceNames.GradesAPI.GetName(), $"grades/student?studentId={studentId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var grades = JsonConvert.DeserializeObject<List<Grade>>(await response.Content.ReadAsStringAsync());
+                    return grades;
+                }
+                else
+                {
+                    return new List<Grade>();
+                }
             }
-            else
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error fetching grades: {ex.Message}");
                 return new List<Grade>();
             }
+
         }
         public async Task<HttpResponseMessage> AddGrade(Grade grade)
         {
-            var response = await _apiService.PostAsync(MicroserviceNames.GradesAPI.GetName(), "grades/add", grade);
-            return response;
+            try
+            {
+                var response = await _apiService.PostAsync(MicroserviceNames.GradesAPI.GetName(), "grades/add", grade);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding grade: {ex.Message}");
+                return new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError);
+            }
         }
     }
 }

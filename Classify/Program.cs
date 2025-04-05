@@ -37,6 +37,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<RateProfService>();
 builder.Services.AddScoped<GradeService>();
 builder.Services.AddScoped<CourseService>();
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 

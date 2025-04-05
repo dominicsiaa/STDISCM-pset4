@@ -1,0 +1,36 @@
+﻿@using Classify.Model
+@using Microsoft.AspNetCore.Components.Forms
+
+<EditForm Model="NewCourse" OnValidSubmit="AddCourse">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label for="code" class="form-label">Course Code</label>
+        <InputText id="code" class="form-control" @bind-Value="NewCourse.Code" />
+    </div>
+    <div class="mb-3">
+        <label for="units" class="form-label">Units</label>
+        <InputNumber id="units" class="form-control" @bind-Value="NewCourse.Units" />
+    </div>
+    <div class="mb-3">
+        <label for="capacity" class="form-label">Capacity</label>
+        <InputNumber id="capacity" class="form-control" @bind-Value="NewCourse.Capacity" />
+    </div>
+    <button type="submit" class="btn btn-primary mb-3" disabled="@IsProcessing">
+        @if (IsProcessing)
+        {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span>Adding...</span>
+        }
+        else
+        {
+            <span>Add Course</span>
+        }
+    </button>
+</EditForm>
+
+@code {
+    [Parameter] public Course NewCourse { get; set; }
+    [Parameter] public EventCallback AddCourse { get; set; }
+    [Parameter] public bool IsProcessing { get; set; }
+}
