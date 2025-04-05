@@ -28,6 +28,46 @@ else if (isRateProfServiceDown)
 }
 else
 {
+
+    <h4 class="mt-5">All Ratings by Professor</h4>
+
+    @foreach (var prof in professors)
+    {
+        var ratings = profRatingsMap.ContainsKey(prof.Id) ? profRatingsMap[prof.Id] : new List<RateProf>();
+        var avg = ratings.Any() ? ratings.Average(r => r.Score) : 0;
+
+            <div class="mb-5 border p-3 rounded shadow-sm">
+                <h5 class="mb-2">@prof.Username</h5>
+                <p class="text-muted mb-3">Average Rating: <strong>@avg.ToString("0.0") ★</strong></p>
+
+            @if (ratings.Count > 0)
+            {
+                        <div class="row">
+                    @foreach (var rating in ratings)
+                    {
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h6 class="card-title">@rating.Score ★</h6>
+                                                <p class="card-text">@rating.Comment</p>
+                                                <p class="card-text text-muted small">
+                                                    by @rating.StudentUsername on @rating.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                    }
+                        </div>
+            }
+            else
+            {
+                        <p class="text-muted">No ratings yet.</p>
+            }
+            </div>
+    }
+
+
+
     @if (myRatings.Count > 0)
     {
         <div class="mb-4">
@@ -57,34 +97,40 @@ else
     }
 
     <h4>Rate a Professor</h4>
-    <EditForm OnValidSubmit="HandleSubmit" Model="rating">
+        <EditForm  EditContext="editContext" OnValidSubmit="HandleSubmit" >
         <DataAnnotationsValidator />
         <ValidationSummary />
 
         <div class="mb-3">
             <label class="form-label">Select a Professor</label>
-            <InputSelect class="form-select" @bind-Value="selectedProfId">
-                <option value="">-- Choose Professor --</option>
-                @foreach (var prof in professors)
-                {
-                    <option value="@prof.Id">@prof.Username</option>
-                }
-            </InputSelect>
+                <InputSelect class="form-select" @bind-Value="formModel.SelectedProfId">
+                     <option value="">-- Choose Professor --</option>
+                         @foreach (var prof in professors)
+                            {
+                                <option value="@prof.Id">@prof.Username</option>
+                             }
+                 </InputSelect>
+           <ValidationMessage For="@(() => formModel.SelectedProfId)" />
         </div>
 
         <div class="mb-3">
             <label class="form-label">Rating (1–5)</label>
-            <InputNumber class="form-control" @bind-Value="rating.Score" />
+                <InputNumber class="form-control" @bind-Value="formModel.Rating.Score" />
+                <ValidationMessage For="@(() => formModel.Rating.Score)" />
         </div>
 
         <div class="mb-3">
             <label class="form-label">Comment (optional)</label>
-            <InputTextArea class="form-control" @bind-Value="rating.Comment" />
+                <InputTextArea class="form-control" @bind-Value="formModel.Rating.Comment" />
+                <ValidationMessage For="@(() => formModel.Rating.Comment)" />
         </div>
 
-        @if (!HasAlreadyRated(selectedProfId))
+        @if (!HasAlreadyRated(formModel.SelectedProfId ?? -1))
         {
-            <button type="submit" class="btn btn-primary">Submit Rating</button>
+        <button type="submit" class="btn btn-primary" disabled="@( !editContext.Validate() )">
+            Submit Rating
+        </button>
+
         }
         else
         {
@@ -96,17 +142,30 @@ else
     </EditForm>
 }
 
+
+
 @code {
+    @using System.ComponentModel.DataAnnotations
+
+    public class RateProfWrapper
+    {
+        [Required(ErrorMessage = "Please select a professor.")]
+        public int? SelectedProfId { get; set; }
+
+        public RateProf Rating { get; set; } = new();
+    }
+
     private User user = null;
     private List<User> professors = null;
     private List<RateProf> myRatings = new();
-
     private string statusMessage = "";
-    private int selectedProfId;
     private RateProf rating = new();
-
+    private RateProfWrapper formModel = new();
     private bool isLoading = true;
     private bool isRateProfServiceDown = false;
+    private Dictionary<int, List<RateProf>> profRatingsMap = new();
+    private EditContext editContext;
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -123,6 +182,11 @@ else
             user = await UserService.GetUserAsync();
             professors = await RateProfService.GetAllProfessors();
             myRatings = await RateProfService.GetMyRatings(user.Id);
+            foreach (var prof in professors)
+            {
+                var ratings = await RateProfService.GetRatingsByProfessor(prof.Id);
+                profRatingsMap[prof.Id] = ratings;
+            }
         }
         catch (Exception ex)
         {
@@ -139,15 +203,12 @@ else
     {
         try
         {
-			statusMessage = $"Submitting rating...";
+            statusMessage = "Submitting rating...";
 
-            var selectedProf = professors.FirstOrDefault(p => p.Id == selectedProfId);
-            if (selectedProf == null)
-            {
-                statusMessage = "Please select a professor.";
-                return;
-            }
+            var selectedProf = professors.FirstOrDefault(p => p.Id == formModel.SelectedProfId);
+            if (selectedProf == null) return;
 
+            var rating = formModel.Rating;
             rating.StudentId = user.Id;
             rating.StudentUsername = user.Username;
             rating.InstructorId = selectedProf.Id;
@@ -159,24 +220,27 @@ else
             if (response.IsSuccessStatusCode)
             {
                 statusMessage = $"Successfully submitted rating for {selectedProf.Username}.";
-                rating = new RateProf(); // Reset form
-                selectedProfId = 0;
-                myRatings = await RateProfService.GetMyRatings(user.Id); // Refresh rating history
+                formModel = new RateProfWrapper(); // reset
+                editContext = new EditContext(formModel);
+
+                myRatings = await RateProfService.GetMyRatings(user.Id);
+                profRatingsMap[selectedProf.Id] = await RateProfService.GetRatingsByProfessor(selectedProf.Id);
             }
             else
             {
                 statusMessage = "Failed to submit rating.";
             }
         }
-		catch
-		{
-			statusMessage = "Service is currently unavailable. Please try again later.";
-		}
+        catch
+        {
+            statusMessage = "Service is currently unavailable. Please try again later.";
+        }
         finally
-		{
-			StateHasChanged();
-		}
+        {
+            StateHasChanged();
+        }
     }
+
 
     private bool HasAlreadyRated(int profId)
     {
@@ -188,4 +252,18 @@ else
 		isLoading = true;
 		await LoadDataAsync();
 	}
+
+
+
+    protected override void OnInitialized()
+    {
+        formModel = new RateProfWrapper
+            {
+                SelectedProfId = null,
+                Rating = new RateProf { Score = 1 }
+            };
+
+        editContext = new EditContext(formModel);
+    }
+
 }

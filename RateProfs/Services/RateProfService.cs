@@ -8,6 +8,9 @@ namespace RateProfs.Services
     {
         IEnumerable<RateProf> GetRatingsOfStudent(int studentId);
         void SubmitRating(RateProf rating);
+
+        IEnumerable<RateProf> GetRatingsOfProfessor(int professorId);
+
     }
 
     public class RateProfService : IRateProfService
@@ -27,6 +30,11 @@ namespace RateProfs.Services
         public void SubmitRating(RateProf rating)
         {
             _dataAccess.SubmitRating(rating);
+        }
+
+        public IEnumerable<RateProf> GetRatingsOfProfessor(int professorId)
+        {
+            return _dataAccess.GetRatingsByProfessorId(professorId);
         }
     }
 

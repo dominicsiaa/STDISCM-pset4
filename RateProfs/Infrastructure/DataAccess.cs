@@ -24,5 +24,14 @@ namespace RateProfs.Infrastructure
             _context.Ratings.Add(rating);
             _context.SaveChanges();
         }
+
+        public IEnumerable<RateProf> GetRatingsByProfessorId(int professorId)
+        {
+            return _context.Ratings
+                .Where(r => r.InstructorId == professorId)
+                .ToList();
+        }
+
+
     }
 }

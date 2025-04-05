@@ -64,6 +64,21 @@ namespace Classify.Services
             }
         }
 
+        public async Task<List<RateProf>> GetRatingsByProfessor(int instructorId)
+        {
+            try
+            {
+                var response = await _apiService.GetAsync(MicroserviceNames.RateProfAPI.GetName(), $"ratings/professor/{instructorId}");
+                if (!response.IsSuccessStatusCode) return new();
+
+                return JsonConvert.DeserializeObject<List<RateProf>>(await response.Content.ReadAsStringAsync()) ?? new();
+            }
+            catch
+            {
+                return new(); 
+            }
+        }
+
 
     }
 }

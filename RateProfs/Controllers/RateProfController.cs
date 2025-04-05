@@ -32,5 +32,15 @@ namespace RateProfs.Controllers
             _service.SubmitRating(rating);
             return Ok();
         }
+
+
+        [Authorize]
+        [HttpGet("professor/{id}")]
+        public IEnumerable<RateProf> GetRatingsByProfessor(int id)
+        {
+            return _service.GetRatingsOfProfessor(id);
+        }
+
+
     }
 }
