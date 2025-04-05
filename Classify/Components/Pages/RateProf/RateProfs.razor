@@ -68,50 +68,51 @@ else
         </div>
 
 
-        @if (myRatings.Count > 0)
-        {
-            <div>
-                <h4>My Rating History</h4>
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Professor</th>
-                            <th>Score</th>
-                            <th>Comment</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var r in myRatings)
-                        {
-                            <tr>
-                                <td>@r.InstructorUsername</td>
-                                <td>@r.Score</td>
-                                <td>@r.Comment</td>
-                                <td>@r.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-        <div class="my-4">
-            <h4>Rate a Professor</h4>
-            <EditForm EditContext="editContext" OnValidSubmit="HandleSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
 
-                <div class="my-2">
-                    <label class="form-label">Select a Professor</label>
-                    <InputSelect class="form-select" @bind-Value="formModel.SelectedProfId">
-                        <option value="">-- Choose Professor --</option>
-                        @foreach (var prof in professors)
-                        {
-                            <option value="@prof.Id">@prof.Username</option>
-                        }
-                    </InputSelect>
-                    <ValidationMessage For="@(() => formModel.SelectedProfId)" />
-                </div>
+    @if (myRatings.Count > 0)
+    {
+        <div class="mb-4">
+            <h4>My Rating History</h4>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Professor</th>
+                        <th>Score</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in myRatings)
+                    {
+                        <tr>
+                            <td>@r.InstructorUsername</td>
+                            <td>@r.Score</td>
+                            <td>@r.Comment</td>
+                            <td>@r.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <h4>Rate a Professor</h4>
+        <EditForm  EditContext="editContext" OnValidSubmit="HandleSubmit" @key="editFormKey" >
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Select a Professor</label>
+                <InputSelect class="form-select" @bind-Value="formModel.SelectedProfId">
+                         <option value="0">-- Choose Professor --</option>
+                         @foreach (var prof in professors)
+                            {
+                                <option value="@prof.Id">@prof.Username</option>
+                             }
+                 </InputSelect>
+           <ValidationMessage For="@(() => formModel.SelectedProfId)" />
+        </div>
 
                 <div class="my-2">
                     <label class="form-label">Rating (1–5)</label>
@@ -119,28 +120,28 @@ else
                     <ValidationMessage For="@(() => formModel.Rating.Score)" />
                 </div>
 
-                <div class="my-2">
-                    <label class="form-label">Comment (optional)</label>
-                    <InputTextArea class="form-control" @bind-Value="formModel.Rating.Comment" />
-                    <ValidationMessage For="@(() => formModel.Rating.Comment)" />
-                </div>
-
-                @if (!HasAlreadyRated(formModel.SelectedProfId ?? -1))
-                {
+        <div class="mb-3">
+            <label class="form-label">Comment (optional)</label>
+                <InputTextArea class="form-control" @bind-Value="formModel.Rating.Comment" />
+                <ValidationMessage For="@(() => formModel.Rating.Comment)" />
+        </div>
+        @if (formModel.SelectedProfId > 0)
+        {
+            if (!HasAlreadyRated(formModel.SelectedProfId))
+            {
                     <button type="submit" class="btn btn-primary" disabled="@( !editContext.Validate() )">
                         Submit Rating
                     </button>
-
-                }
-                else
-                {
-                    <div class="alert alert-warning my-3">
+            }
+            else
+            {
+                    <div class="alert alert-warning mt-3">
                         You have already rated this professor.
                     </div>
-                }
+            }
+        }
 
             </EditForm>
-        </div>
     </div>
 }
 
@@ -152,7 +153,7 @@ else
     public class RateProfWrapper
     {
         [Required(ErrorMessage = "Please select a professor.")]
-        public int? SelectedProfId { get; set; }
+        public int SelectedProfId { get; set; }
 
         public RateProf Rating { get; set; } = new();
     }
@@ -167,6 +168,7 @@ else
     private bool isRateProfServiceDown = false;
     private Dictionary<int, List<RateProf>> profRatingsMap = new();
     private EditContext editContext;
+    private string editFormKey = Guid.NewGuid().ToString();
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -222,8 +224,16 @@ else
             if (response.IsSuccessStatusCode)
             {
                 statusMessage = $"Successfully submitted rating for {selectedProf.Username}.";
-                formModel = new RateProfWrapper(); // reset
+
+                formModel = new RateProfWrapper
+                    {
+                        SelectedProfId = 0,
+                        Rating = new RateProf { Score = 1 }
+                    };
                 editContext = new EditContext(formModel);
+                editContext.MarkAsUnmodified();
+
+
 
                 myRatings = await RateProfService.GetMyRatings(user.Id);
                 profRatingsMap[selectedProf.Id] = await RateProfService.GetRatingsByProfessor(selectedProf.Id);
@@ -261,7 +271,7 @@ else
     {
         formModel = new RateProfWrapper
             {
-                SelectedProfId = null,
+                SelectedProfId = 0,
                 Rating = new RateProf { Score = 1 }
             };
 

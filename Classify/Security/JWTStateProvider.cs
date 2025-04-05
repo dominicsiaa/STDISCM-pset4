@@ -42,7 +42,7 @@ namespace Classify.Security
 
                 return state;
             }
-            catch (Exception e)
+            catch
             {
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }

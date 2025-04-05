@@ -112,7 +112,7 @@ else
             user = await UserService.GetUserAsync();
 			courses = await CourseService.GetAllCourses();
         }
-        catch (Exception ex)
+        catch
         {
             isCourseServiceDown = true;
         }
