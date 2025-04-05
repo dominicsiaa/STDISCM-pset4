@@ -83,7 +83,7 @@
         {
             Logger.LogInformation($"Attempting to log in as: {loginModel.Username}");
             var response = await authenticationService.Login(loginModel.Username, loginModel.Password);
-            if (response)
+            if (response.IsSuccessStatusCode)
             {
                 Logger.LogInformation("Login successful, navigating to home.");
                 navigationManager.NavigateTo("/");
@@ -94,15 +94,10 @@
                 errorMessage = "Invalid username or password. Please try again.";
             }
         }
-        catch (HttpRequestException ex)
+        catch
         {
 			errorMessage = "Service is currently unavailable. Please try again later.";
             isServiceDown = true;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "An error occurred during login.");
-            errorMessage = "An unexpected error occurred. Please try again later.";
         }
         finally
         {

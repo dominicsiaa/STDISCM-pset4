@@ -24,17 +24,21 @@ namespace Classify.Services
             _logger = logger;
             _refreshTokenService = refreshTokenService;
         }
-        public async Task<bool> SignUp(string username, string password, string role)
+        public async Task<HttpResponseMessage> SignUp(string username, string password, string role)
         {
             _logger.LogInformation($"Attempting to sign up user: {username} with role: {role}");
-            if (role != "Student" && role != "Teacher")
-            {
-                _logger.LogWarning("Invalid role provided. Role must be either 'Student' or 'Teacher'.");
-                return false;
-            }
 
             try
             {
+                if (role != "Student" && role != "Teacher")
+                {
+                    _logger.LogWarning("Invalid role provided. Role must be either 'Student' or 'Teacher'.");
+                    return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest)
+                    {
+                        Content = new StringContent("Invalid role provided. Role must be either 'Student' or 'Teacher'.")
+                    };
+                }
+
                 var response = await _client.PostAsJsonAsync("signin", new { username, password, role });
                 _logger.LogInformation($"Received response: {response.StatusCode}");
 
@@ -42,23 +46,26 @@ namespace Classify.Services
                 {
                     _logger.LogInformation("Sign-up successful. Navigating to login page.");
                     _nav.NavigateTo("/login");
-                    return true;
+                    return response;
                 }
                 else
                 {
                     _logger.LogWarning($"Sign-up failed with status code: {response.StatusCode}");
                     var errorResponse = await response.Content.ReadAsStringAsync();
                     _logger.LogWarning($"Error response: {errorResponse}");
-                    return false;
+                    return response;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Exception occurred during sign-up: {ex.Message}");
-                return false;
+                return new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent("Service unavailable. Please try again later.")
+                };
             }
         }
-        public async Task<bool> Login(string username, string password)
+        public async Task<HttpResponseMessage> Login(string username, string password)
         {
             _logger.LogInformation($"Attempting to log in user: {username}");
 
@@ -78,7 +85,7 @@ namespace Classify.Services
                     await _refreshTokenService.SetToken(result.RefreshToken);
 
                     _nav.NavigateTo("/");
-                    return true;
+                    return response;
                 }
                 else
                 {
@@ -86,13 +93,16 @@ namespace Classify.Services
                     var errorResponse = await response.Content.ReadAsStringAsync();
                     _logger.LogWarning($"Error response: {errorResponse}");
 
-                    return false;
+                    return response;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Exception occurred during login: {ex.Message}");
-                return false;
+                return new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent("Service unavailable. Please try again later.")
+                };
             }
         }
         public async Task<bool> RefreshTokenAsync()
@@ -124,19 +134,26 @@ namespace Classify.Services
         {
             _logger.LogInformation("Logging out user.");
 
-            var refreshToken = await _refreshTokenService.GetToken();
-            _client.DefaultRequestHeaders.Add("Cookie", $"refreshtoken={refreshToken}");
-            var response = await _client.PostAsync("logout", null);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                _logger.LogInformation("Logout successful.");
-                await _accessTokenService.RemoveToken();
-                await _refreshTokenService.RemoveToken();
-                _nav.NavigateTo("/login", forceLoad: true);
+                var refreshToken = await _refreshTokenService.GetToken();
+                _client.DefaultRequestHeaders.Add("Cookie", $"refreshtoken={refreshToken}");
+                var response = await _client.PostAsync("logout", null);
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("Logout successful.");
+                    await _accessTokenService.RemoveToken();
+                    await _refreshTokenService.RemoveToken();
+                    _nav.NavigateTo("/login", forceLoad: true);
+                }
+                else
+                {
+                    _logger.LogWarning($"Logout failed with status code: {response.StatusCode}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogWarning($"Logout failed with status code: {response.StatusCode}");
+                _logger.LogError($"Exception occurred during logout: {ex.Message}");
             }
         }
     }

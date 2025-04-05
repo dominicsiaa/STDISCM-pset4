@@ -28,118 +28,120 @@ else if (isRateProfServiceDown)
 }
 else
 {
-
-    <h4 class="mt-5">All Ratings by Professor</h4>
-
-    @foreach (var prof in professors)
-    {
-        var ratings = profRatingsMap.ContainsKey(prof.Id) ? profRatingsMap[prof.Id] : new List<RateProf>();
-        var avg = ratings.Any() ? ratings.Average(r => r.Score) : 0;
-
-            <div class="mb-5 border p-3 rounded shadow-sm">
-                <h5 class="mb-2">@prof.Username</h5>
-                <p class="text-muted mb-3">Average Rating: <strong>@avg.ToString("0.0") ★</strong></p>
-
-            @if (ratings.Count > 0)
+    <div class="my-2">
+        <h4>All Ratings by Professor</h4>
+        <div class="my-4">
+            @foreach (var prof in professors)
             {
-                        <div class="row">
-                    @foreach (var rating in ratings)
+                var ratings = profRatingsMap.ContainsKey(prof.Id) ? profRatingsMap[prof.Id] : new List<RateProf>();
+                var avg = ratings.Any() ? ratings.Average(r => r.Score) : 0;
+
+                    <div class="mb-2 border p-3 rounded shadow-sm">
+                        <h5 class="mb-2">@prof.Username</h5>
+                        <p class="text-muted mb-3">Average Rating: <strong>@avg.ToString("0.0") ★</strong></p>
+
+                    @if (ratings.Count > 0)
                     {
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card">
-                                            <div class="card-body">
-                                                <h6 class="card-title">@rating.Score ★</h6>
-                                                <p class="card-text">@rating.Comment</p>
-                                                <p class="card-text text-muted small">
-                                                    by @rating.StudentUsername on @rating.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy")
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                    }
-                        </div>
-            }
-            else
-            {
-                        <p class="text-muted">No ratings yet.</p>
-            }
-            </div>
-    }
-
-
-
-    @if (myRatings.Count > 0)
-    {
-        <div class="mb-4">
-            <h4>My Rating History</h4>
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Professor</th>
-                        <th>Score</th>
-                        <th>Comment</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in myRatings)
-                    {
-                        <tr>
-                            <td>@r.InstructorUsername</td>
-                            <td>@r.Score</td>
-                            <td>@r.Comment</td>
-                            <td>@r.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-
-    <h4>Rate a Professor</h4>
-        <EditForm  EditContext="editContext" OnValidSubmit="HandleSubmit" >
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <div class="mb-3">
-            <label class="form-label">Select a Professor</label>
-                <InputSelect class="form-select" @bind-Value="formModel.SelectedProfId">
-                     <option value="">-- Choose Professor --</option>
-                         @foreach (var prof in professors)
+                                <div class="row">
+                            @foreach (var rating in ratings)
                             {
-                                <option value="@prof.Id">@prof.Username</option>
-                             }
-                 </InputSelect>
-           <ValidationMessage For="@(() => formModel.SelectedProfId)" />
+                                            <div class="col-md-6 mb-2">
+                                                <div class="card">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title">@rating.Score ★</h6>
+                                                        <p class="card-text">@rating.Comment</p>
+                                                        <p class="card-text text-muted small">
+                                                            by @rating.StudentUsername on @rating.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy")
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                            }
+                                </div>
+                    }
+                    else
+                    {
+                                <p class="text-muted">No ratings yet.</p>
+                    }
+                    </div>
+            }
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Rating (1–5)</label>
-                <InputNumber class="form-control" @bind-Value="formModel.Rating.Score" />
-                <ValidationMessage For="@(() => formModel.Rating.Score)" />
-        </div>
 
-        <div class="mb-3">
-            <label class="form-label">Comment (optional)</label>
-                <InputTextArea class="form-control" @bind-Value="formModel.Rating.Comment" />
-                <ValidationMessage For="@(() => formModel.Rating.Comment)" />
-        </div>
-
-        @if (!HasAlreadyRated(formModel.SelectedProfId ?? -1))
+        @if (myRatings.Count > 0)
         {
-        <button type="submit" class="btn btn-primary" disabled="@( !editContext.Validate() )">
-            Submit Rating
-        </button>
-
-        }
-        else
-        {
-            <div class="alert alert-warning mt-3">
-                You have already rated this professor.
+            <div>
+                <h4>My Rating History</h4>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Professor</th>
+                            <th>Score</th>
+                            <th>Comment</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in myRatings)
+                        {
+                            <tr>
+                                <td>@r.InstructorUsername</td>
+                                <td>@r.Score</td>
+                                <td>@r.Comment</td>
+                                <td>@r.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         }
+        <div class="my-4">
+            <h4>Rate a Professor</h4>
+            <EditForm EditContext="editContext" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-    </EditForm>
+                <div class="my-2">
+                    <label class="form-label">Select a Professor</label>
+                    <InputSelect class="form-select" @bind-Value="formModel.SelectedProfId">
+                        <option value="">-- Choose Professor --</option>
+                        @foreach (var prof in professors)
+                        {
+                            <option value="@prof.Id">@prof.Username</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => formModel.SelectedProfId)" />
+                </div>
+
+                <div class="my-2">
+                    <label class="form-label">Rating (1–5)</label>
+                    <InputNumber class="form-control" @bind-Value="formModel.Rating.Score" />
+                    <ValidationMessage For="@(() => formModel.Rating.Score)" />
+                </div>
+
+                <div class="my-2">
+                    <label class="form-label">Comment (optional)</label>
+                    <InputTextArea class="form-control" @bind-Value="formModel.Rating.Comment" />
+                    <ValidationMessage For="@(() => formModel.Rating.Comment)" />
+                </div>
+
+                @if (!HasAlreadyRated(formModel.SelectedProfId ?? -1))
+                {
+                    <button type="submit" class="btn btn-primary" disabled="@( !editContext.Validate() )">
+                        Submit Rating
+                    </button>
+
+                }
+                else
+                {
+                    <div class="alert alert-warning my-3">
+                        You have already rated this professor.
+                    </div>
+                }
+
+            </EditForm>
+        </div>
+    </div>
 }
 
 

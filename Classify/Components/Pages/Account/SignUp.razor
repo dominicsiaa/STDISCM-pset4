@@ -104,15 +104,10 @@
                 errorMessage = "Signup failed. Please try again.";
             }
         }
-        catch (HttpRequestException ex)
+        catch
         {
-			errorMessage = "Service is currently unavailable. Please try again later.";
+            errorMessage = "Service is currently unavailable. Please try again later.";
             isServiceDown = true;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "An error occurred during signup.");
-            errorMessage = "An unexpected error occurred. Please try again later.";
         }
         finally
         {
