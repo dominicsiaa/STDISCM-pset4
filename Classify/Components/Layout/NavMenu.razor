@@ -1,4 +1,6 @@
 ﻿@inject AuthenticationService AuthenticationService
+@inject AuthenticationStateProvider AuthProvider
+
 @rendermode InteractiveServer
 @using System.Security.Claims
 
@@ -31,12 +33,14 @@
                 <span class="bi bi-book-fill-nav-menu" aria-hidden="true"></span> Grades
             </NavLink>
         </div>
-
+        @if (!isTeacher) 
+        {   
         <div class="nav-item px-2">
             <NavLink class="nav-link" href="rate-prof">
                 <span class="bi bi-book-fill-nav-menu" aria-hidden="true"></span> Rate Prof
             </NavLink>
         </div>
+        }
 
         <div class="nav-item px-2">
             <button class="nav-link" @onclick="Logout">
@@ -47,8 +51,27 @@
 </div>
 
 @code {
+
+    private bool isTeacher = false;
+
     private async Task Logout()
     {
         await AuthenticationService.Logout();
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var role = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            isTeacher = role == "Teacher" || role == "Professor"; // depending on your actual role name
+        }
+    }
+
+
+
+
 }

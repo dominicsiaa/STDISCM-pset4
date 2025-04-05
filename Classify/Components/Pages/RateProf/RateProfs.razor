@@ -77,7 +77,17 @@ else
                 <InputTextArea class="form-control" @bind-Value="rating.Comment" />
             </div>
 
+        @if (!HasAlreadyRated(selectedProfId))
+        {
             <button type="submit" class="btn btn-primary">Submit Rating</button>
+        }
+        else
+        {
+            <div class="alert alert-warning mt-3">
+                You have already rated this professor.
+            </div>
+        }
+
         </EditForm>
 }
 
@@ -145,5 +155,11 @@ else
         {
             statusMessage = "Failed to submit rating.";
         }
+    }
+
+
+    private bool HasAlreadyRated(int profId)
+    {
+        return myRatings.Any(r => r.InstructorId == profId);
     }
 }
