@@ -30,7 +30,14 @@ else if (isGradesServiceDown)
 else
 {
     <div class="my-2">
-        <h4>My Courses</h4>
+        @if (user.Role == "Student") 
+        {
+            <h4>My Grades</h4>
+        }
+        else
+        {
+			<h4>Grades of Students</h4>
+        }
         <table class="table">
             <thead>
                 <tr>
