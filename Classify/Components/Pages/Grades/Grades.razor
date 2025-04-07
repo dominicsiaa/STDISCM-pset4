@@ -227,8 +227,9 @@ else
             if (response.IsSuccessStatusCode)
             {
                 statusMessage = $"Grade {newGPA} submitted for student {studentId} in {courseCode}.";
-                newGPA = "0.0"; // Reset the new GPA after submission
-                await LoadDataAsync(); // Reload data to reflect changes
+                newGPA = "0.0"; 								
+                // To allow for the new grade to be reflected in the UI even if EnrollmentAPI is down
+				grades = await GradeService.GetStudentGrades(user.Id);
             }
             else
             {
