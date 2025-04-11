@@ -21,10 +21,10 @@
 }
 else if (isRateProfServiceDown)
 {
-	<div class="alert alert-danger" role="alert">
-		Service is currently unavailable. Please try again later.
-	</div>
-	<button class="btn btn-primary" @onclick="RefreshDataAsync">Try Again</button>
+    <div class="alert alert-danger" role="alert">
+        Service is currently unavailable. Please try again later.
+    </div>
+    <button class="btn btn-primary" @onclick="RefreshDataAsync">Try Again</button>
 }
 else
 {
@@ -36,112 +36,112 @@ else
                 var ratings = profRatingsMap.ContainsKey(prof.Id) ? profRatingsMap[prof.Id] : new List<RateProf>();
                 var avg = ratings.Any() ? ratings.Average(r => r.Score) : 0;
 
-                    <div class="mb-2 border p-3 rounded shadow-sm">
-                        <h5 class="mb-2">@prof.Username</h5>
-                        <p class="text-muted mb-3">Average Rating: <strong>@avg.ToString("0.0") ★</strong></p>
+                <div class="mb-2 border p-3 rounded shadow-sm">
+                    <h5 class="mb-2">@prof.Username</h5>
+                    <p class="text-muted mb-3">Average Rating: <strong>@avg.ToString("0.0") ★</strong></p>
 
                     @if (ratings.Count > 0)
                     {
-                                <div class="row">
+                        <div class="row">
                             @foreach (var rating in ratings)
                             {
-                                            <div class="col-md-6 mb-2">
-                                                <div class="card">
-                                                    <div class="card-body">
-                                                        <h6 class="card-title">@rating.Score ★</h6>
-                                                        <p class="card-text">@rating.Comment</p>
-                                                        <p class="card-text text-muted small">
-                                                            by @rating.StudentUsername on @rating.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy")
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                            }
+                                <div class="col-md-6 mb-2">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">@rating.Score ★</h6>
+                                            <p class="card-text">@rating.Comment</p>
+                                            <p class="card-text text-muted small">
+                                                by @rating.StudentUsername on @rating.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy")
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
+                            }
+                        </div>
                     }
                     else
                     {
-                                <p class="text-muted">No ratings yet.</p>
+                        <p class="text-muted">No ratings yet.</p>
                     }
-                    </div>
+                </div>
             }
         </div>
 
 
 
-    @if (myRatings.Count > 0)
-    {
-        <div class="mb-4">
-            <h4>My Rating History</h4>
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Professor</th>
-                        <th>Score</th>
-                        <th>Comment</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in myRatings)
-                    {
+        @if (myRatings.Count > 0)
+        {
+            <div class="mb-4">
+                <h4>My Rating History</h4>
+                <table class="table table-sm">
+                    <thead>
                         <tr>
-                            <td>@r.InstructorUsername</td>
-                            <td>@r.Score</td>
-                            <td>@r.Comment</td>
-                            <td>@r.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                            <th>Professor</th>
+                            <th>Score</th>
+                            <th>Comment</th>
+                            <th>Date</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
+                    </thead>
+                    <tbody>
+                        @foreach (var r in myRatings)
+                        {
+                            <tr>
+                                <td>@r.InstructorUsername</td>
+                                <td>@r.Score</td>
+                                <td>@r.Comment</td>
+                                <td>@r.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
 
-    <h4>Rate a Professor</h4>
+        <h4>Rate a Professor</h4>
         <EditForm  EditContext="editContext" OnValidSubmit="HandleSubmit" OnInvalidSubmit="HandleInvalid" @key="editFormKey" >
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-        <div class="mb-3">
-            <label class="form-label">Select a Professor</label>
+            <div class="mb-3">
+                <label class="form-label">Select a Professor</label>
                 <InputSelect class="form-select" @bind-Value="formModel.SelectedProfId">
-                         <option value="0">-- Choose Professor --</option>
-                         @foreach (var prof in professors)
-                            {
-                                <option value="@prof.Id">@prof.Username</option>
-                             }
-                 </InputSelect>
-           <ValidationMessage For="@(() => formModel.SelectedProfId)" />
-        </div>
+                    <option value="0">-- Choose Professor --</option>
+                    @foreach (var prof in professors)
+                    {
+                        <option value="@prof.Id">@prof.Username</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => formModel.SelectedProfId)" />
+            </div>
 
-                <div class="my-2">
-                    <label class="form-label">Rating (1–5)</label>
-                    <InputNumber class="form-control" @bind-Value="formModel.Rating.Score" />
-                    <ValidationMessage For="@(() => formModel.Rating.Score)" />
-                </div>
+            <div class="my-2">
+                <label class="form-label">Rating (1–5)</label>
+                <InputNumber class="form-control" @bind-Value="formModel.Rating.Score" />
+                <ValidationMessage For="@(() => formModel.Rating.Score)" />
+            </div>
 
-        <div class="mb-3">
-            <label class="form-label">Comment (optional)</label>
+            <div class="mb-3">
+                <label class="form-label">Comment (optional)</label>
                 <InputTextArea class="form-control" @bind-Value="formModel.Rating.Comment" style="resize: none;" />
                 <ValidationMessage For="@(() => formModel.Rating.Comment)" />
-        </div>
-        @if (formModel.SelectedProfId > 0)
-        {
-            if (!HasAlreadyRated(formModel.SelectedProfId))
+            </div>
+            @if (formModel.SelectedProfId > 0)
             {
+                if (!HasAlreadyRated(formModel.SelectedProfId))
+                {
                     <button type="submit" class="btn btn-primary">
                         Submit Rating
                     </button>
-            }
-            else
-            {
+                }
+                else
+                {
                     <div class="alert alert-warning mt-3">
                         You have already rated this professor.
                     </div>
+                }
             }
-        }
 
-            </EditForm>
+        </EditForm>
     </div>
 }
 
@@ -191,6 +191,7 @@ else
                 var ratings = await RateProfService.GetRatingsByProfessor(prof.Id);
                 profRatingsMap[prof.Id] = ratings;
             }
+            isRateProfServiceDown = false;
         }
         catch (Exception ex)
         {

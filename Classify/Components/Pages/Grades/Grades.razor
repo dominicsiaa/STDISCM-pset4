@@ -36,7 +36,7 @@ else
         }
         else
         {
-			<h4>Grades of Students</h4>
+            <h4>Grades of Students</h4>
         }
         <table class="table">
             <thead>
@@ -90,8 +90,8 @@ else
                                             <DataAnnotationsValidator />
                                             <div class="d-flex align-items-center">
                                                 <InputSelect @bind-Value="newGPA"
-                                                             class="form-select form-select-sm me-2"
-                                                             style="width: 100px">
+                                                class="form-select form-select-sm me-2"
+                                                style="width: 100px">
                                                     <option value="0.0">0.0</option>
                                                     <option value="1.0">1.0</option>
                                                     <option value="2.0">2.0</option>
@@ -163,17 +163,19 @@ else
     {
         try
         {
-			user = await UserService.GetUserAsync();
+            user = await UserService.GetUserAsync();
 
             if (user.Role == "Student")
             {
                 grades = await GradeService.GetGradesOfStudent(user.Id);
+                isGradesServiceDown = false;
             }
-			else if (user.Role == "Teacher")
+            else if (user.Role == "Teacher")
             {
                 courses = await CourseService.GetAllCourses();
                 courses = courses.Where(c => c.InstructorId == user.Id).ToList();
                 grades = await GradeService.GetStudentGrades(user.Id);
+                isGradesServiceDown = false;
             }
         }
         catch

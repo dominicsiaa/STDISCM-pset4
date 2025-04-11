@@ -78,10 +78,10 @@ else
                 @foreach (var course in courses)
                 {
                     <CourseCard Course="course" 
-                                UserId="user.Id" 
-                                ShowEnrollButton="@(user.Role == "Student")" 
-                                EnrollStudent="() => EnrollStudent(course.Id, course.Code)" 
-                                IsProcessing="isProcessing" />
+                    UserId="user.Id" 
+                    ShowEnrollButton="@(user.Role == "Student")" 
+                    EnrollStudent="() => EnrollStudent(course.Id, course.Code)" 
+                    IsProcessing="isProcessing" />
                 }
             </div>
         </div>
@@ -110,7 +110,8 @@ else
         try
         {
             user = await UserService.GetUserAsync();
-			courses = await CourseService.GetAllCourses();
+            courses = await CourseService.GetAllCourses();
+            isCourseServiceDown = false;
         }
         catch
         {
