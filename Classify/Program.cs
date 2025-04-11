@@ -26,6 +26,7 @@ builder.Services.AddHttpClient(MicroserviceNames.RateProfAPI.GetName(), client =
 //builder.Services.AddHttpClient(MicroserviceNames.AuthenticationAPI.GetName(), client => client.BaseAddress = new Uri("http://192.168.1.14:8080/api/Authentication/"));
 //builder.Services.AddHttpClient(MicroserviceNames.GradesAPI.GetName(), client => client.BaseAddress = new Uri("http://192.168.1.16:8080/"));
 //builder.Services.AddHttpClient(MicroserviceNames.EnrollmentAPI.GetName(), client => client.BaseAddress = new Uri("http://192.168.1.15:8080/"));
+//builder.Services.AddHttpClient(MicroserviceNames.RateProfAPI.GetName(), client => client.BaseAddress = new Uri("http://192.168.1.17:8080/"));
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication()
